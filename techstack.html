@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Aurum — Tech Stack Deep Dive</title>
+<style>
+  :root[data-theme="dark"] {
+    --bg: #0f1117; --bg2: #161b27; --bg3: #1e2436; --bg4: #252c3f;
+    --border: #2d3654; --text: #e8eaf0; --text2: #9ba3c4; --text3: #6b7394;
+    --gold: #f0b429; --gold2: #ffd166; --gold3: #7a5a0a;
+    --green: #34d399; --blue: #60a5fa; --purple: #a78bfa; --red: #f87171;
+    --cyan: #22d3ee; --orange: #fb923c;
+    --code-bg: #0d1117; --sidebar-w: 280px;
+  }
+  :root[data-theme="light"] {
+    --bg: #f8f9fc; --bg2: #ffffff; --bg3: #f0f2f8; --bg4: #e8ecf5;
+    --border: #d0d8ed; --text: #1a1f36; --text2: #4a5280; --text3: #8890b4;
+    --gold: #b07d0a; --gold2: #d4920c; --gold3: #fef3c7;
+    --green: #059669; --blue: #2563eb; --purple: #7c3aed; --red: #dc2626;
+    --cyan: #0891b2; --orange: #ea580c;
+    --code-bg: #f0f2f8; --sidebar-w: 280px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg); color: var(--text); display: flex;
+    min-height: 100vh; font-size: 15px; line-height: 1.6; }
+
+  /* SIDEBAR */
+  #sidebar {
+    width: var(--sidebar-w); background: var(--bg2); border-right: 1px solid var(--border);
+    position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto;
+    display: flex; flex-direction: column; z-index: 100;
+  }
+  #sidebar-header {
+    padding: 20px 16px 16px; border-bottom: 1px solid var(--border);
+  }
+  #sidebar-header h1 { font-size: 18px; font-weight: 700; color: var(--gold); }
+  #sidebar-header p { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  #sidebar nav { flex: 1; padding: 12px 0; }
+  .nav-section { padding: 8px 16px 4px; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); }
+  .nav-item { display: block; padding: 7px 16px; font-size: 13px; color: var(--text2);
+    text-decoration: none; border-left: 3px solid transparent; transition: all 0.15s;
+    cursor: pointer; }
+  .nav-item:hover, .nav-item.active { color: var(--gold); border-left-color: var(--gold);
+    background: var(--bg3); }
+  #sidebar-footer { padding: 12px 16px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text3); }
+
+  /* MAIN */
+  #main { margin-left: var(--sidebar-w); flex: 1; max-width: calc(100vw - var(--sidebar-w)); }
+  #topbar {
+    position: sticky; top: 0; background: var(--bg2); border-bottom: 1px solid var(--border);
+    padding: 12px 32px; display: flex; align-items: center; justify-content: space-between;
+    z-index: 50; gap: 16px;
+  }
+  #topbar-title { font-size: 14px; font-weight: 600; color: var(--text2); }
+  #theme-toggle {
+    background: var(--bg3); border: 1px solid var(--border); color: var(--text2);
+    padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px;
+    transition: all 0.2s;
+  }
+  #theme-toggle:hover { border-color: var(--gold); color: var(--gold); }
+  #content { padding: 40px 48px; max-width: 1100px; }
+
+  /* SECTIONS */
+  .section { margin-bottom: 72px; scroll-margin-top: 64px; }
+  .section-header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 32px; }
+  .section-icon { width: 48px; height: 48px; border-radius: 12px; display: flex;
+    align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+  .section-meta h2 { font-size: 26px; font-weight: 700; color: var(--text); }
+  .section-meta p { color: var(--text2); margin-top: 4px; font-size: 14px; }
+
+  /* TECH CARDS */
+  .tech-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(480px, 1fr)); gap: 24px; }
+  .tech-card {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden; transition: border-color 0.2s;
+  }
+  .tech-card:hover { border-color: var(--gold3); }
+  .tech-card-header {
+    padding: 20px 24px 16px; display: flex; align-items: flex-start; gap: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tech-logo { width: 44px; height: 44px; border-radius: 10px; display: flex;
+    align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .tech-title h3 { font-size: 17px; font-weight: 700; }
+  .tech-title .version { font-size: 11px; color: var(--text3); margin-top: 1px; }
+  .tech-title .tagline { font-size: 13px; color: var(--text2); margin-top: 2px; }
+  .tech-card-body { padding: 20px 24px; }
+  .tech-card-body p { color: var(--text2); font-size: 14px; margin-bottom: 14px; }
+
+  /* WHY CALLOUT */
+  .why-box {
+    background: var(--bg3); border-left: 3px solid var(--gold); border-radius: 0 8px 8px 0;
+    padding: 12px 16px; margin-bottom: 16px;
+  }
+  .why-box strong { color: var(--gold); font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.08em; display: block; margin-bottom: 4px; }
+  .why-box p { margin: 0; font-size: 13px; color: var(--text2); }
+
+  /* CODE */
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px; overflow-x: auto; font-size: 12px; line-height: 1.6;
+    margin-bottom: 16px; }
+  code { font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; }
+  :not(pre) > code { background: var(--bg4); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1px 6px; font-size: 12px; color: var(--gold2); }
+
+  /* SYNTAX COLORS */
+  .kw { color: #ff79c6; } .str { color: #f1fa8c; } .cm { color: #6272a4; }
+  .fn { color: #50fa7b; } .cl { color: #8be9fd; } .num { color: #bd93f9; }
+  .dec { color: #ffb86c; }
+
+  /* REFS */
+  .refs { margin-top: 16px; }
+  .refs strong { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text3); display: block; margin-bottom: 8px; }
+  .ref-links { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ref-link { background: var(--bg4); border: 1px solid var(--border); border-radius: 6px;
+    padding: 4px 10px; font-size: 12px; color: var(--blue); text-decoration: none;
+    transition: all 0.15s; }
+  .ref-link:hover { border-color: var(--blue); background: var(--bg3); }
+
+  /* BADGES */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px;
+    font-weight: 600; margin-right: 4px; margin-bottom: 4px; }
+  .badge-gold { background: var(--gold3); color: var(--gold); }
+  .badge-green { background: rgba(52,211,153,0.12); color: var(--green); }
+  .badge-blue { background: rgba(96,165,250,0.12); color: var(--blue); }
+  .badge-purple { background: rgba(167,139,250,0.12); color: var(--purple); }
+  .badge-red { background: rgba(248,113,113,0.12); color: var(--red); }
+  .badge-cyan { background: rgba(34,211,238,0.12); color: var(--cyan); }
+  .badge-orange { background: rgba(251,146,60,0.12); color: var(--orange); }
+
+  /* COMPARISON TABLE */
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+  .compare-table th { background: var(--bg3); color: var(--text3); font-weight: 600;
+    padding: 10px 14px; text-align: left; border-bottom: 2px solid var(--border); }
+  .compare-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text2); }
+  .compare-table tr.chosen td { background: rgba(240,180,41,0.06); color: var(--text); }
+  .compare-table tr.chosen td:first-child { color: var(--gold); font-weight: 600; }
+  .tick { color: var(--green); } .cross { color: var(--red); }
+
+  /* FLOW DIAGRAM */
+  .flow-diagram { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px;
+    padding: 24px; margin-bottom: 20px; font-size: 13px; }
+  .flow-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .flow-box { background: var(--bg4); border: 1px solid var(--border); border-radius: 6px;
+    padding: 6px 14px; font-size: 12px; }
+  .flow-box.gold { border-color: var(--gold); color: var(--gold); }
+  .flow-box.green { border-color: var(--green); color: var(--green); }
+  .flow-box.blue { border-color: var(--blue); color: var(--blue); }
+  .flow-box.purple { border-color: var(--purple); color: var(--purple); }
+  .flow-arrow { color: var(--text3); }
+
+  /* INTRO HERO */
+  .hero { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px;
+    padding: 40px 48px; margin-bottom: 48px; }
+  .hero h1 { font-size: 32px; font-weight: 800; color: var(--gold); margin-bottom: 8px; }
+  .hero p { color: var(--text2); max-width: 640px; line-height: 1.7; font-size: 15px; }
+  .hero-stats { display: flex; gap: 32px; margin-top: 28px; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat-val { font-size: 28px; font-weight: 800; color: var(--gold); }
+  .stat-label { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .stat-divider { width: 1px; background: var(--border); }
+
+  @media (max-width: 900px) {
+    #sidebar { transform: translateX(-100%); }
+    #main { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div id="sidebar-header">
+    <h1>⚜ Aurum</h1>
+    <p>Tech Stack Deep Dive</p>
+  </div>
+  <nav>
+    <div class="nav-section">Overview</div>
+    <a class="nav-item active" onclick="scrollTo('intro')">Introduction</a>
+    <div class="nav-section">AI &amp; Orchestration</div>
+    <a class="nav-item" onclick="scrollTo('langgraph')">LangGraph</a>
+    <a class="nav-item" onclick="scrollTo('langchain')">LangChain</a>
+    <a class="nav-item" onclick="scrollTo('llm')">LLM Providers</a>
+    <div class="nav-section">RAG &amp; Knowledge</div>
+    <a class="nav-item" onclick="scrollTo('chromadb')">ChromaDB</a>
+    <a class="nav-item" onclick="scrollTo('embeddings')">Embeddings</a>
+    <div class="nav-section">Backend</div>
+    <a class="nav-item" onclick="scrollTo('fastapi')">FastAPI</a>
+    <a class="nav-item" onclick="scrollTo('websockets')">WebSockets</a>
+    <a class="nav-item" onclick="scrollTo('sqlalchemy')">SQLAlchemy</a>
+    <div class="nav-section">Auth &amp; Security</div>
+    <a class="nav-item" onclick="scrollTo('auth')">JWT &amp; Auth</a>
+    <a class="nav-item" onclick="scrollTo('ratelimit')">Rate Limiting</a>
+    <div class="nav-section">Data Storage</div>
+    <a class="nav-item" onclick="scrollTo('postgres')">PostgreSQL</a>
+    <a class="nav-item" onclick="scrollTo('redis')">Redis</a>
+    <div class="nav-section">Market Data</div>
+    <a class="nav-item" onclick="scrollTo('yfinance')">yfinance</a>
+    <a class="nav-item" onclick="scrollTo('adapters')">Adapter Registry</a>
+    <div class="nav-section">Frontend</div>
+    <a class="nav-item" onclick="scrollTo('react')">React + Vite</a>
+    <a class="nav-item" onclick="scrollTo('shadcn')">shadcn/ui + Tailwind</a>
+    <a class="nav-item" onclick="scrollTo('recharts')">Recharts</a>
+    <a class="nav-item" onclick="scrollTo('tanstack')">TanStack Query</a>
+    <div class="nav-section">Infrastructure</div>
+    <a class="nav-item" onclick="scrollTo('docker')">Docker Compose</a>
+    <a class="nav-item" onclick="scrollTo('alembic')">Alembic</a>
+    <div class="nav-section">Testing</div>
+    <a class="nav-item" onclick="scrollTo('pytest')">pytest</a>
+  </nav>
+  <div id="sidebar-footer">© 2024 Kapil Manchanda</div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<div id="main">
+  <div id="topbar">
+    <span id="topbar-title">Aurum — Technology Reference Guide</span>
+    <button id="theme-toggle" onclick="toggleTheme()">☀ Light</button>
+  </div>
+  <div id="content">
+
+    <!-- INTRO -->
+    <div class="hero" id="intro">
+      <h1>Tech Stack Deep Dive</h1>
+      <p>A comprehensive reference for every technology powering Aurum — a production-ready multi-agent AI finance assistant. Each entry explains what the technology does, why it was chosen over alternatives, how it's wired into Aurum, and where to learn more.</p>
+      <div class="hero-stats">
+        <div class="stat"><div class="stat-val">6</div><div class="stat-label">LangGraph Agents</div></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><div class="stat-val">21</div><div class="stat-label">RAG Articles</div></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><div class="stat-val">4</div><div class="stat-label">LLM Providers</div></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><div class="stat-val">42</div><div class="stat-label">Tests</div></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><div class="stat-val">5</div><div class="stat-label">Docker Services</div></div>
+      </div>
+    </div>
+
+    <!-- ─── AI & ORCHESTRATION ─── -->
+    <div class="section" id="langgraph">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(167,139,250,0.15)">🔀</div>
+        <div class="section-meta">
+          <h2>LangGraph</h2>
+          <p>Multi-agent orchestration with stateful graphs</p>
+        </div>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-logo" style="background:rgba(167,139,250,0.15)">🔀</div>
+            <div class="tech-title">
+              <h3>LangGraph</h3>
+              <div class="version">v0.2.50+ · Python</div>
+              <div class="tagline">Stateful agent graph framework by LangChain</div>
+            </div>
+          </div>
+          <div class="tech-card-body">
+            <p>LangGraph lets you define agents as nodes in a directed graph. Each node is a Python function that reads from and writes to a shared <code>State</code> TypedDict. Edges can be conditional (router decides which node runs next) or use <code>Send</code> for parallel fan-out.</p>
+            <div class="why-box">
+              <strong>Why LangGraph over plain LangChain?</strong>
+              <p>LangChain chains are linear and stateless — good for single-turn pipelines. LangGraph adds cyclic graphs, persistent checkpoints, and parallel execution. Aurum needs all three: a supervisor that routes to multiple specialists in parallel, conversation memory across turns, and branching logic (e.g., route to "clarify" if confidence is low).</p>
+            </div>
+            <p><strong>Aurum's graph:</strong></p>
+            <div class="flow-diagram">
+              <div class="flow-row">
+                <div class="flow-box gold">START</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-box blue">load_context</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-box blue">supervisor_route</div>
+              </div>
+              <div class="flow-row">
+                <div class="flow-box blue">supervisor_route</div>
+                <div class="flow-arrow">→ if low confidence →</div>
+                <div class="flow-box purple">clarify_node</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-box gold">END</div>
+              </div>
+              <div class="flow-row">
+                <div class="flow-box blue">supervisor_route</div>
+                <div class="flow-arrow">→ otherwise →</div>
+                <div class="flow-box blue">retrieve_rag</div>
+                <div class="flow-arrow">→ Send() fan-out →</div>
+                <div class="flow-box green">6 parallel agents</div>
+              </div>
+              <div class="flow-row">
+                <div class="flow-box green">agents done</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-box blue">synthesizer</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-box blue">persist_turn</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-box gold">END</div>
+              </div>
+            </div>
+            <pre><code><span class="cm"># Parallel fan-out with Send()</span>
+<span class="kw">def</span> <span class="fn">fanout_to_agents</span>(state: FinanceState) -> list[Send]:
+    <span class="kw">return</span> [
+        Send(agent_name, {<span class="str">"messages"</span>: state[<span class="str">"messages"</span>], <span class="str">"user_id"</span>: state[<span class="str">"user_id"</span>], ...})
+        <span class="kw">for</span> agent_name <span class="kw">in</span> state[<span class="str">"selected_agents"</span>]
+    ]
+
+<span class="cm"># Parallel-safe reducer on state</span>
+<span class="kw">class</span> <span class="cl">FinanceState</span>(TypedDict):
+    agent_results: Annotated[list[AgentResult], add]  <span class="cm"># add = list concat</span></code></pre>
+            <div class="refs">
+              <strong>Learn More</strong>
+              <div class="ref-links">
+                <a class="ref-link" href="https://langchain-ai.github.io/langgraph/" target="_blank">LangGraph Docs</a>
+                <a class="ref-link" href="https://langchain-ai.github.io/langgraph/concepts/low_level/" target="_blank">Graph Primitives</a>
+                <a class="ref-link" href="https://langchain-ai.github.io/langgraph/tutorials/multi_agent/multi-agent-collaboration/" target="_blank">Multi-Agent Tutorial</a>
+                <a class="ref-link" href="https://blog.langchain.dev/langgraph/" target="_blank">LangGraph Blog Post</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LANGCHAIN -->
+    <div class="section" id="langchain">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(96,165,250,0.15)">⛓</div>
+        <div class="section-meta">
+          <h2>LangChain</h2>
+          <p>LLM primitives, message types, and tool infrastructure</p>
+        </div>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-logo" style="background:rgba(96,165,250,0.15)">⛓</div>
+            <div class="tech-title">
+              <h3>LangChain Core</h3>
+              <div class="version">langchain>=0.3.9, langchain-core>=0.3.21</div>
+              <div class="tagline">Message types, prompt templates, and LLM interfaces</div>
+            </div>
+          </div>
+          <div class="tech-card-body">
+            <p>LangChain provides the shared vocabulary that all agents and LLM providers speak: <code>HumanMessage</code>, <code>AIMessage</code>, <code>SystemMessage</code>, <code>ChatPromptTemplate</code>. This lets you swap LLM providers without touching agent code.</p>
+            <div class="why-box">
+              <strong>What Aurum uses it for</strong>
+              <p>Message objects in <code>FinanceState.messages</code>, prompt templates for the 6 agent nodes, <code>astream_events</code> for streaming token-by-token to the WebSocket, and <code>add_messages</code> as the LangGraph state reducer that correctly merges message lists.</p>
+            </div>
+            <pre><code><span class="cm"># Agent node pattern</span>
+<span class="kw">async def</span> <span class="fn">qa_agent</span>(state: FinanceState) -> dict:
+    llm = get_llm(temperature=<span class="num">0.3</span>, streaming=<span class="kw">True</span>)
+    prompt = ChatPromptTemplate.from_messages([
+        (<span class="str">"system"</span>, QA_SYSTEM_PROMPT),
+        MessagesPlaceholder(<span class="str">"messages"</span>),
+    ])
+    chain = prompt | llm
+    response = <span class="kw">await</span> chain.ainvoke({<span class="str">"messages"</span>: state[<span class="str">"messages"</span>], ...})
+    <span class="kw">return</span> {<span class="str">"agent_results"</span>: [AgentResult(agent=<span class="str">"qa"</span>, content=response.content)]}</code></pre>
+            <div class="refs">
+              <strong>Learn More</strong>
+              <div class="ref-links">
+                <a class="ref-link" href="https://python.langchain.com/docs/concepts/" target="_blank">LangChain Concepts</a>
+                <a class="ref-link" href="https://python.langchain.com/docs/how_to/streaming/" target="_blank">Streaming Guide</a>
+                <a class="ref-link" href="https://python.langchain.com/docs/concepts/messages/" target="_blank">Message Types</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LLM PROVIDERS -->
+    <div class="section" id="llm">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(240,180,41,0.15)">🧠</div>
+        <div class="section-meta">
+          <h2>LLM Providers</h2>
+          <p>Multi-provider factory — swap with one env var change</p>
+        </div>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-logo" style="background:rgba(240,180,41,0.15)">🧠</div>
+            <div class="tech-title">
+              <h3>Multi-Provider LLM Factory</h3>
+              <div class="version">anthropic | openai | google | bedrock</div>
+              <div class="tagline">src/core/llm.py — configure via .env</div>
+            </div>
+          </div>
+          <div class="tech-card-body">
+            <p>Aurum's <code>get_llm()</code> factory returns a LangChain-compatible chat model regardless of provider. All agent code calls <code>get_llm()</code> — no provider-specific imports anywhere except in <code>llm.py</code>.</p>
+            <div class="why-box">
+              <strong>Why abstract the provider?</strong>
+              <p>Prevents vendor lock-in. Switching from GPT-4o to Claude to Gemini requires changing two env vars — zero code changes. Critical for a capstone that may be graded across different API access scenarios.</p>
+            </div>
+            <table class="compare-table">
+              <tr><th>Provider</th><th>LLM_PROVIDER</th><th>Best Models</th><th>Free Tier</th></tr>
+              <tr><td>Anthropic</td><td><code>anthropic</code></td><td>claude-opus-4-7, claude-sonnet-4-6</td><td class="cross">✗</td></tr>
+              <tr class="chosen"><td>OpenAI ✓</td><td><code>openai</code></td><td>gpt-4o, gpt-4o-mini, gpt-4.1</td><td class="tick">Pay-per-use</td></tr>
+              <tr><td>Google</td><td><code>google</code></td><td>gemini-2.0-flash, gemini-1.5-pro</td><td class="tick">✓ Free tier</td></tr>
+              <tr><td>AWS Bedrock</td><td><code>bedrock</code></td><td>claude-3 via Bedrock</td><td class="cross">✗</td></tr>
+            </table>
+            <pre><code><span class="cm"># src/core/llm.py</span>
+<span class="kw">def</span> <span class="fn">get_llm</span>(temperature=<span class="num">0.3</span>, streaming=<span class="kw">False</span>):
+    <span class="kw">if</span> settings.llm_provider == <span class="str">"openai"</span>:
+        <span class="kw">from</span> langchain_openai <span class="kw">import</span> ChatOpenAI
+        <span class="kw">return</span> ChatOpenAI(
+            model=settings.llm_model,          <span class="cm"># gpt-4o-mini from .env</span>
+            api_key=settings.openai_api_key,
+            temperature=temperature,
+            streaming=streaming,
+        )
+    <span class="cm"># ... elif anthropic, google, bedrock</span></code></pre>
+            <div class="refs">
+              <strong>Learn More</strong>
+              <div class="ref-links">
+                <a class="ref-link" href="https://platform.openai.com/docs/models" target="_blank">OpenAI Models</a>
+                <a class="ref-link" href="https://python.langchain.com/docs/integrations/chat/openai/" target="_blank">LangChain OpenAI</a>
+                <a class="ref-link" href="https://docs.anthropic.com/en/docs/models-overview" target="_blank">Anthropic Models</a>
+                <a class="ref-link" href="https://ai.google.dev/gemini-api/docs/models/gemini" target="_blank">Gemini Models</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHROMADB -->
+    <div class="section" id="chromadb">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(52,211,153,0.15)">🗄</div>
+        <div class="section-meta">
+          <h2>ChromaDB</h2>
+          <p>Vector store for RAG — semantic search over financial articles</p>
+        </div>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-logo" style="background:rgba(52,211,153,0.15)">🗄</div>
+            <div class="tech-title">
+              <h3>ChromaDB</h3>
+              <div class="version">v1.5.x client + latest server</div>
+              <div class="tagline">Open-source embedding database</div>
+            </div>
+          </div>
+          <div class="tech-card-body">
+            <p>ChromaDB stores document embeddings (dense float vectors) and lets you query by semantic similarity. When a user asks a financial question, Aurum embeds the query and finds the most relevant knowledge-base articles — this is RAG (Retrieval-Augmented Generation).</p>
+            <div class="why-box">
+              <strong>Why ChromaDB over Pinecone, Weaviate, or pgvector?</strong>
+              <p>ChromaDB runs fully locally with a single Docker image — no API key, no cloud cost, no signup. Pinecone and Weaviate Cloud both require external API keys. pgvector would work but adds schema complexity to PostgreSQL. For a capstone where portability matters, a self-contained Docker service wins.</p>
+            </div>
+            <pre><code><span class="cm"># Category-filtered semantic search</span>
+<span class="kw">def</span> <span class="fn">query</span>(self, text: str, categories: list[str], k: int = <span class="num">5</span>):
+    where = {<span class="str">"category"</span>: {<span class="str">"$in"</span>: categories}} <span class="kw">if</span> len(categories) > <span class="num">1</span> \
+        <span class="kw">else</span> {<span class="str">"category"</span>: categories[<span class="num">0</span>]}
+    <span class="kw">return</span> self._col.query(
+        query_texts=[text],
+        n_results=k,
+        where=where,  <span class="cm"># metadata filter</span>
+        include=[<span class="str">"documents"</span>, <span class="str">"metadatas"</span>, <span class="str">"distances"</span>],
+    )
+
+<span class="cm"># Collection uses cosine similarity (better for text than L2)</span>
+self._col = self._client.get_or_create_collection(
+    name=<span class="str">"finance_kb"</span>,
+    metadata={<span class="str">"hnsw:space"</span>: <span class="str">"cosine"</span>},
+)</code></pre>
+            <p>The 21 seed articles are split across 5 categories (<code>investing</code>, <code>portfolio</code>, <code>tax</code>, <code>goals</code>, <code>market</code>). The supervisor selects relevant categories, so a portfolio question only retrieves portfolio articles — reducing noise.</p>
+            <div class="refs">
+              <strong>Learn More</strong>
+              <div class="ref-links">
+                <a class="ref-link" href="https://docs.trychroma.com/" target="_blank">ChromaDB Docs</a>
+                <a class="ref-link" href="https://docs.trychroma.com/docs/collections/configure" target="_blank">Collection Config</a>
+                <a class="ref-link" href="https://www.pinecone.io/learn/vector-database/" target="_blank">Vector DBs Explained</a>
+                <a class="ref-link" href="https://docs.trychroma.com/docs/querying-collections/metadata-filtering" target="_blank">Metadata Filtering</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMBEDDINGS -->
+    <div class="section" id="embeddings">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(34,211,238,0.15)">🔢</div>
+        <div class="section-meta">
+          <h2>Embeddings</h2>
+          <p>Turning text into vectors — the math behind semantic search</p>
+        </div>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-logo" style="background:rgba(34,211,238,0.15)">🔢</div>
+            <div class="tech-title">
+              <h3>all-MiniLM-L6-v2</h3>
+              <div class="version">sentence-transformers>=3.3.0 · 384 dimensions</div>
+              <div class="tagline">Lightweight BERT-based sentence embedding model</div>
+            </div>
+          </div>
+          <div class="tech-card-body">
+            <p>An embedding model converts text into a fixed-length float vector. Sentences with similar meaning end up near each other in vector space — enabling semantic (meaning-based) search instead of keyword matching.</p>
+            <div class="why-box">
+              <strong>Why all-MiniLM-L6-v2?</strong>
+              <p>It's the default ChromaDB embedding function — runs locally (no API call), fast (6 transformer layers), and produces 384-dim vectors that are small enough to be efficient while accurate enough for finance Q&A. OpenAI's <code>text-embedding-3-small</code> is slightly better quality but costs money per embedding call and requires internet access at ingest time.</p>
+            </div>
+            <p><strong>How HNSW works:</strong> Hierarchical Navigable Small World is the approximate nearest neighbor index ChromaDB uses internally. It builds a graph of vectors at multiple "zoom levels" — like a geographic map — letting you find the ~nearest vectors in O(log n) time instead of brute-force O(n).</p>
+            <table class="compare-table">
+              <tr><th>Model</th><th>Dims</th><th>Cost</th><th>Quality</th></tr>
+              <tr class="chosen"><td>all-MiniLM-L6-v2 ✓</td><td>384</td><td>Free (local)</td><td>Good</td></tr>
+              <tr><td>all-mpnet-base-v2</td><td>768</td><td>Free (local, slower)</td><td>Better</td></tr>
+              <tr><td>text-embedding-3-small</td><td>1536</td><td>$0.02/1M tokens</td><td>Best</td></tr>
+              <tr><td>text-embedding-ada-002</td><td>1536</td><td>$0.10/1M tokens</td><td>Good</td></tr>
+            </table>
+            <div class="refs">
+              <strong>Learn More</strong>
+              <div class="ref-links">
+                <a class="ref-link" href="https://www.sbert.net/" target="_blank">sentence-transformers</a>
+                <a class="ref-link" href="https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2" target="_blank">Model Card</a>
+                <a class="ref-link" href="https://www.pinecone.io/learn/hnsw/" target="_blank">HNSW Explained</a>
+                <a class="ref-link" href="https://www.youtube.com/watch?v=QvKMwLjdK-s" target="_blank">Embeddings Visual Guide</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FASTAPI -->
+    <div class="section" id="fastapi">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(52,211,153,0.15)">⚡</div>
+        <div class="section-meta">
+          <h2>FastAPI</h2>
+          <p>Async Python web framework — the API gateway</p>
+        </div>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-logo" style="background:rgba(52,211,153,0.15)">⚡</div>
+            <div class="tech-title">
+              <h3>FastAPI</h3>
+              <div class="version">>=0.115.0 + uvicorn[standard]</div>
+              <div class="tagline">Modern async Python API framework</div>
+            </div>
+          </div>
+          <div class="tech-card-body">
+            <p>FastAPI generates OpenAPI docs automatically from Python type hints. Routes are async by default, meaning a single process can handle thousands of concurrent requests without threads — essential when each chat request may take several seconds awaiting an LLM.</p>
+            <div class="why-box">
+              <strong>Why FastAPI over Flask / Django?</strong>
+              <p>Flask and Django REST Framework are synchronous by default. Aurum's LangGraph <code>astream_events</code> requires an async event loop throughout the entire request lifecycle. FastAPI + uvicorn is the standard async Python stack, and pydantic-v2 integration means request/response validation is free.</p>
+            </div>
+            <pre><code><span class="cm"># Dependency injection for auth + DB</span>
+<span class="dec">@router.get</span>(<span class="str">"/api/market/quote/{symbol}"</span>)
+<span class="kw">async def</span> <span class="fn">get_quote</span>(
+    symbol: str,
+    current_user: User = Depends(get_current_user),  <span class="cm"># JWT check</span>
+    db: AsyncSession = Depends(get_db),              <span class="cm"># DB session</span>
+) -> QuoteResponse:
+    <span class="kw">return await</span> market_service.get_quote(symbol)
+
+<span class="cm"># Lifespan for startup/shutdown hooks</span>
+<span class="dec">@asynccontextmanager</span>
+<span class="kw">async def</span> <span class="fn">lifespan</span>(app: FastAPI):
+    <span class="kw">await</span> init_db()    <span class="cm"># run Alembic migrations</span>
+    init_chroma()      <span class="cm"># connect ChromaDB</span>
+    build_graph()      <span class="cm"># compile LangGraph</span>
+    <span class="kw">yield</span>
+    <span class="kw">await</span> close_db()</code></pre>
+            <div class="refs">
+              <strong>Learn More</strong>
+              <div class="ref-links">
+                <a class="ref-link" href="https://fastapi.tiangolo.com/" target="_blank">FastAPI Docs</a>
+                <a class="ref-link" href="https://fastapi.tiangolo.com/tutorial/dependencies/" target="_blank">Dependency Injection</a>
+                <a class="ref-link" href="https://www.uvicorn.org/" target="_blank">uvicorn ASGI Server</a>
+                <a class="ref-link" href="https://fastapi.tiangolo.com/advanced/websockets/" target="_blank">WebSockets in FastAPI</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEBSOCKETS -->
+    <div class="section" id="websockets">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(251,146,60,0.15)">📡</div>
+        <div class="section-meta">
+          <h2>WebSockets + Streaming</h2>
+          <p>Real-time token streaming from LLM → browser</p>
+        </div>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-logo" style="background:rgba(251,146,60,0.15)">📡</div>
+            <div class="tech-title">
+              <h3>WebSocket Streaming</h3>
+              <div class="version">FastAPI WS + LangGraph astream_events</div>
+              <div class="tagline">Full-duplex streaming with typed JSON frames</div>
+            </div>
+          </div>
+          <div class="tech-card-body">
+            <p>Instead of waiting for the full LLM response (5–15 seconds), tokens stream to the browser as they're generated. FastAPI's <code>WebSocket</code> endpoint stays open for the session lifetime. The React <code>useChat</code> hook reconnects automatically with exponential backoff.</p>
+            <div class="why-box">
+              <strong>Why WebSockets over SSE?</strong>
+              <p>Server-Sent Events (SSE) only support server→client streaming over HTTP. WebSockets are full-duplex, allowing the client to send new messages while prior responses are still streaming, and enabling mid-stream cancellation. For a chat app, WS is the natural choice.</p>
+            </div>
+            <pre><code><span class="cm"># Wire frame protocol</span>
+{<span class="str">"type"</span>: <span class="str">"agent_start"</span>, <span class="str">"agent"</span>: <span class="str">"portfolio"</span>}
+{<span class="str">"type"</span>: <span class="str">"token"</span>, <span class="str">"delta"</span>: <span class="str">"Your portfolio"</span>}
+{<span class="str">"type"</span>: <span class="str">"citation"</span>, <span class="str">"source_title"</span>: <span class="str">"Asset Allocation"</span>, <span class="str">"snippet"</span>: <span class="str">"..."</span>}
+{<span class="str">"type"</span>: <span class="str">"agent_end"</span>, <span class="str">"agent"</span>: <span class="str">"portfolio"</span>}
+{<span class="str">"type"</span>: <span class="str">"final"</span>, <span class="str">"message_id"</span>: <span class="str">"..."</span>, <span class="str">"content"</span>: <span class="str">"..."</span>}
+
+<span class="cm"># React hook: exponential backoff reconnect</span>
+<span class="kw">const</span> delay = Math.min(
+    RECONNECT_BASE_MS * <span class="num">2</span> ** reconnectAttemptsRef.current,
+    RECONNECT_MAX_MS  <span class="cm">// cap at 30s</span>
+);</code></pre>
+            <div class="refs">
+              <strong>Learn More</strong>
+              <div class="ref-links">
+                <a class="ref-link" href="https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API" target="_blank">MDN WebSocket API</a>
+                <a class="ref-link" href="https://langchain-ai.github.io/langgraph/how-tos/streaming-tokens/" target="_blank">LangGraph Streaming</a>
+                <a class="ref-link" href="https://javascript.info/websocket" target="_blank">WebSocket Deep Dive</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SQLALCHEMY -->
+    <div class="section" id="sqlalchemy">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(96,165,250,0.15)">🗃</div>
+        <div class="section-meta">
+          <h2>SQLAlchemy</h2>
+          <p>Async ORM for users, portfolios, goals, and conversations</p>
+        </div>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-logo" style="background:rgba(96,165,250,0.15)">🗃</div>
+            <div class="tech-title">
+              <h3>SQLAlchemy 2.0 (async)</h3>
+              <div class="version">>=2.0.36 + asyncpg driver</div>
+              <div class="tagline">Python ORM with async session support</div>
+            </div>
+          </div>
+          <div class="tech-card-body">
+            <p>SQLAlchemy 2.0 added first-class <code>async</code> support via <code>AsyncSession</code>. Combined with the <code>asyncpg</code> driver, all DB queries are non-blocking — the event loop can handle other requests while waiting for Postgres.</p>
+            <div class="why-box">
+              <strong>Why SQLAlchemy over raw SQL or Tortoise ORM?</strong>
+              <p>Raw SQL requires manual parameter escaping and schema management. Tortoise ORM has a smaller ecosystem. SQLAlchemy is the de facto standard with excellent Alembic migration support, lazy loading, relationship support, and battle-tested async sessions. Pydantic models validate at the API layer; SQLAlchemy models handle persistence.</p>
+            </div>
+            <pre><code><span class="cm"># Async session as FastAPI dependency</span>
+<span class="kw">async def</span> <span class="fn">get_db</span>() -> AsyncGenerator[AsyncSession, <span class="kw">None</span>]:
+    <span class="kw">async with</span> AsyncSessionLocal() <span class="kw">as</span> session:
+        <span class="kw">yield</span> session  <span class="cm"># auto-close on request end</span>
+
+<span class="cm"># Async query</span>
+result = <span class="kw">await</span> db.execute(
+    select(User).where(User.email == body.email)
+)
+user = result.scalar_one_or_none()</code></pre>
+            <div class="refs">
+              <strong>Learn More</strong>
+              <div class="ref-links">
+                <a class="ref-link" href="https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html" target="_blank">SQLAlchemy Async</a>
+                <a class="ref-link" href="https://docs.sqlalchemy.org/en/20/tutorial/index.html" target="_blank">SQLAlchemy 2.0 Tutorial</a>
+                <a class="ref-link" href="https://github.com/MagicStack/asyncpg" target="_blank">asyncpg Driver</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AUTH -->
+    <div class="section" id="auth">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(248,113,113,0.15)">🔐</div>
+        <div class="section-meta">
+          <h2>JWT Auth &amp; bcrypt</h2>
+          <p>Stateless authentication and password hashing</p>
+        </div>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-logo" style="background:rgba(248,113,113,0.15)">🔐</div>
+            <div class="tech-title">
+              <h3>python-jose + bcrypt</h3>
+              <div class="version">python-jose[cryptography]>=3.3.0 + bcrypt>=4.0.0</div>
+              <div class="tagline">JWT tokens + adaptive password hashing</div>
+            </div>
+          </div>
+          <div class="tech-card-body">
+            <p>Passwords are hashed with bcrypt (adaptive, salted, intentionally slow). On login, a JWT is issued — a cryptographically signed JSON payload containing the user ID and expiry. Every subsequent request carries this token; the server verifies the signature without a DB lookup.</p>
+            <div class="why-box">
+              <strong>Why JWT over sessions?</strong>
+              <p>Session-based auth requires a shared session store (Redis, DB) — every service instance must hit it on each request. JWTs are self-contained: the server just verifies the HMAC signature. This makes horizontal scaling trivial — no sticky sessions, no shared cache for auth. The trade-off is tokens can't be revoked before expiry (acceptable for a 7-day TTL with refresh).</p>
+            </div>
+            <pre><code><span class="cm"># Password: one-way hash, different salt each time</span>
+<span class="kw">def</span> <span class="fn">hash_password</span>(password: str) -> str:
+    <span class="kw">return</span> bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+<span class="cm"># JWT: HS256 signed with SECRET_KEY</span>
+<span class="cm"># Header.Payload.Signature — base64url encoded</span>
+payload = {<span class="str">"sub"</span>: user_id, <span class="str">"exp"</span>: now + timedelta(days=<span class="num">7</span>)}
+token = jwt.encode(payload, SECRET_KEY, algorithm=<span class="str">"HS256"</span>)
+
+<span class="cm"># Verify in FastAPI dependency</span>
+<span class="kw">async def</span> <span class="fn">get_current_user</span>(token: str = Depends(oauth2_scheme)):
+    payload = decode_token(token)  <span class="cm"># raises ValueError if invalid</span>
+    user = <span class="kw">await</span> db.get(User, payload[<span class="str">"sub"</span>])</code></pre>
+            <div class="refs">
+              <strong>Learn More</strong>
+              <div class="ref-links">
+                <a class="ref-link" href="https://jwt.io/introduction" target="_blank">JWT.io Introduction</a>
+                <a class="ref-link" href="https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html" target="_blank">OWASP Password Storage</a>
+                <a class="ref-link" href="https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/" target="_blank">FastAPI JWT Guide</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RATE LIMITING -->
+    <div class="section" id="ratelimit">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(251,146,60,0.15)">🚦</div>
+        <div class="section-meta">
+          <h2>Rate Limiting</h2>
+          <p>slowapi — preventing abuse on public endpoints</p>
+        </div>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-logo" style="background:rgba(251,146,60,0.15)">🚦</div>
+            <div class="tech-title">
+              <h3>slowapi</h3>
+              <div class="version">>=0.1.9</div>
+              <div class="tagline">Flask-Limiter port for FastAPI / Starlette</div>
+            </div>
+          </div>
+          <div class="tech-card-body">
+            <p>slowapi wraps <code>limits</code> and integrates with FastAPI's request lifecycle. Rate limit state is tracked per IP address. When the limit is hit, it raises an exception that FastAPI's exception handler converts to a 429 response.</p>
+            <div class="why-box">
+              <strong>The circular import trap — and how we solved it</strong>
+              <p>Both <code>main.py</code> (adds the limiter to app state) and <code>auth.py</code> (uses <code>@limiter.limit()</code>) need the same <code>Limiter</code> instance. If <code>auth.py</code> imports from <code>main.py</code> and <code>main.py</code> imports <code>auth.py</code>, Python raises a circular import error. Solution: extract <code>limiter</code> to its own module <code>src/api/limiter.py</code> — both files import from there.</p>
+            </div>
+            <pre><code><span class="cm"># src/api/limiter.py — breaks the circular import</span>
+<span class="kw">from</span> slowapi <span class="kw">import</span> Limiter
+<span class="kw">from</span> slowapi.util <span class="kw">import</span> get_remote_address
+limiter = Limiter(key_func=get_remote_address)
+
+<span class="cm"># auth.py — uses the shared instance</span>
+<span class="kw">from</span> src.api.limiter <span class="kw">import</span> limiter
+
+<span class="dec">@router.post</span>(<span class="str">"/register"</span>)
+<span class="dec">@limiter.limit</span>(<span class="str">"10/minute"</span>)  <span class="cm"># 10 registrations per IP per min</span>
+<span class="kw">async def</span> <span class="fn">register</span>(request: Request, ...): ...</code></pre>
+            <div class="refs">
+              <strong>Learn More</strong>
+              <div class="ref-links">
+                <a class="ref-link" href="https://slowapi.readthedocs.io/" target="_blank">slowapi Docs</a>
+                <a class="ref-link" href="https://www.cloudflare.com/learning/bots/what-is-rate-limiting/" target="_blank">Rate Limiting Explained</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- POSTGRES -->
+    <div class="section" id="postgres">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(96,165,250,0.15)">🐘</div>
+        <div class="section-meta">
+          <h2>PostgreSQL</h2>
+          <p>Primary relational database for all structured data</p>
+        </div>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-logo" style="background:rgba(96,165,250,0.15)">🐘</div>
+            <div class="tech-title">
+              <h3>PostgreSQL 16</h3>
+              <div class="version">postgres:16-alpine Docker image</div>
+              <div class="tagline">The world's most advanced open-source relational database</div>
+            </div>
+          </div>
+          <div class="tech-card-body">
+            <p>PostgreSQL stores users, portfolios, holdings, goals, conversation history, and LangGraph checkpoints. The <code>-alpine</code> image keeps the container tiny (≈85MB). JSONB columns store flexible LangGraph checkpoint data without needing a schema migration for every state change.</p>
+            <div class="why-box">
+              <strong>Why Postgres over SQLite / MySQL?</strong>
+              <p>SQLite is single-writer only — with multiple uvicorn workers, concurrent writes would lock. MySQL lacks some JSONB operators Aurum uses for checkpoint storage. Postgres is the production standard for Python web apps, has excellent async driver support (asyncpg), and the same Docker image runs locally and in most cloud environments.</p>
+            </div>
+            <p><strong>Schema tables:</strong> <span class="badge badge-blue">users</span> <span class="badge badge-blue">user_settings</span> <span class="badge badge-green">portfolios</span> <span class="badge badge-green">holdings</span> <span class="badge badge-purple">goals</span> <span class="badge badge-orange">conversations</span> <span class="badge badge-orange">messages</span></p>
+            <div class="refs">
+              <strong>Learn More</strong>
+              <div class="ref-links">
+                <a class="ref-link" href="https://www.postgresql.org/docs/16/" target="_blank">PostgreSQL 16 Docs</a>
+                <a class="ref-link" href="https://www.postgresqltutorial.com/" target="_blank">PostgreSQL Tutorial</a>
+                <a class="ref-link" href="https://www.postgresql.org/docs/current/datatype-json.html" target="_blank">JSONB Column Type</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REDIS -->
+    <div class="section" id="redis">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(248,113,113,0.15)">⚡</div>
+        <div class="section-meta">
+          <h2>Redis</h2>
+          <p>In-memory cache for market data and API responses</p>
+        </div>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-logo" style="background:rgba(248,113,113,0.15)">⚡</div>
+            <div class="tech-title">
+              <h3>Redis 7</h3>
+              <div class="version">redis:7-alpine + redis-py>=5.2.0</div>
+              <div class="tagline">In-memory data store used as a cache</div>
+            </div>
+          </div>
+          <div class="tech-card-body">
+            <p>Market quotes and news headlines are cached in Redis with TTLs (60s for quotes, 5 minutes for indices, 15 minutes for news). Without caching, every chat message asking about a stock would hit yfinance, adding 1–3 seconds of latency.</p>
+            <div class="why-box">
+              <strong>Dual-mode cache (Redis ↔ in-memory)</strong>
+              <p>On Hugging Face Spaces, running a separate Redis container isn't practical. Aurum has a <code>_InMemoryCache</code> backed by <code>cachetools.TTLCache</code> that presents the same async interface. Setting <code>USE_IN_MEMORY_CACHE=true</code> in <code>.env</code> switches seamlessly — no code changes in the adapters or services that consume the cache.</p>
+            </div>
+            <pre><code><span class="cm"># Cache abstraction — same interface for both backends</span>
+<span class="kw">class</span> <span class="cl">_RedisCache</span>:
+    <span class="kw">async def</span> <span class="fn">get</span>(self, key: str) -> str | <span class="kw">None</span>: ...
+    <span class="kw">async def</span> <span class="fn">set</span>(self, key: str, value: str, ttl: int) -> <span class="kw">None</span>: ...
+
+<span class="kw">class</span> <span class="cl">_InMemoryCache</span>:  <span class="cm"># HF fallback</span>
+    <span class="cm"># One TTLCache per TTL bucket (60, 300, 900, 3600 seconds)</span>
+    <span class="kw">async def</span> <span class="fn">get</span>(self, key: str) -> str | <span class="kw">None</span>: ...
+    <span class="kw">async def</span> <span class="fn">set</span>(self, key: str, value: str, ttl: int) -> <span class="kw">None</span>: ...</code></pre>
+            <div class="refs">
+              <strong>Learn More</strong>
+              <div class="ref-links">
+                <a class="ref-link" href="https://redis.io/docs/latest/" target="_blank">Redis Docs</a>
+                <a class="ref-link" href="https://redis-py.readthedocs.io/" target="_blank">redis-py Client</a>
+                <a class="ref-link" href="https://cachetools.readthedocs.io/" target="_blank">cachetools TTLCache</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- YFINANCE -->
+    <div class="section" id="yfinance">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(240,180,41,0.15)">📈</div>
+        <div class="section-meta">
+          <h2>yfinance</h2>
+          <p>Free real-time and historical market data</p>
+        </div>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-logo" style="background:rgba(240,180,41,0.15)">📈</div>
+            <div class="tech-title">
+              <h3>yfinance</h3>
+              <div class="version">>=0.2.50</div>
+              <div class="tagline">Yahoo Finance scraper — free, no API key required</div>
+            </div>
+          </div>
+          <div class="tech-card-body">
+            <p>yfinance wraps Yahoo Finance's undocumented API. It provides real-time quotes, historical OHLCV data, dividends, splits, and company fundamentals. No API key, no rate limit contract — though it can be blocked by Yahoo.</p>
+            <div class="why-box">
+              <strong>Why yfinance as the primary adapter?</strong>
+              <p>Alpha Vantage has a 25-call/day free tier limit — useless for a demo with multiple users. Nasdaq Data Link requires sign-up. yfinance is free with no quotas and returns professional-quality data. The pluggable adapter registry means Aurum can fall through to Alpha Vantage if yfinance fails, and users can reorder adapter priority in Settings.</p>
+            </div>
+            <pre><code><span class="cm"># Run in thread executor (yfinance is synchronous)</span>
+<span class="kw">async def</span> <span class="fn">get_quote</span>(self, symbol: str) -> Quote:
+    loop = asyncio.get_event_loop()
+    ticker = <span class="kw">await</span> loop.run_in_executor(
+        <span class="kw">None</span>,  <span class="cm"># default ThreadPoolExecutor</span>
+        <span class="kw">lambda</span>: yf.Ticker(symbol)
+    )
+    info = <span class="kw">await</span> loop.run_in_executor(<span class="kw">None</span>, <span class="kw">lambda</span>: ticker.info)
+    <span class="kw">return</span> Quote(symbol=symbol, price=info[<span class="str">"currentPrice"</span>], ...)</code></pre>
+            <div class="refs">
+              <strong>Learn More</strong>
+              <div class="ref-links">
+                <a class="ref-link" href="https://ranaroussi.github.io/yfinance/" target="_blank">yfinance Docs</a>
+                <a class="ref-link" href="https://pypi.org/project/yfinance/" target="_blank">PyPI Page</a>
+                <a class="ref-link" href="https://www.alphavantage.co/documentation/" target="_blank">Alpha Vantage (alternative)</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADAPTER REGISTRY -->
+    <div class="section" id="adapters">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(167,139,250,0.15)">🔌</div>
+        <div class="section-meta">
+          <h2>Adapter Registry</h2>
+          <p>Pluggable data sources with priority fallthrough</p>
+        </div>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-logo" style="background:rgba(167,139,250,0.15)">🔌</div>
+            <div class="tech-title">
+              <h3>AdapterRegistry</h3>
+              <div class="version">src/adapters/registry.py</div>
+              <div class="tagline">Strategy + fallthrough pattern for data adapters</div>
+            </div>
+          </div>
+          <div class="tech-card-body">
+            <p>The registry holds a priority-sorted list of market data adapters. When a quote is requested, it tries adapters in order, catching exceptions and falling through to the next one. Results are cached in Redis/in-memory to avoid redundant calls.</p>
+            <div class="why-box">
+              <strong>Design pattern: Strategy + Registry</strong>
+              <p>Each adapter implements the same <code>MarketDataAdapter</code> ABC. The registry is the Strategy pattern — the caller doesn't know which adapter runs. The fallthrough behavior makes the system resilient: if yfinance is rate-limited or Yahoo blocks the IP, AlphaVantage automatically takes over. Users can reorder priority in the Settings page.</p>
+            </div>
+            <pre><code><span class="kw">class</span> <span class="cl">AdapterRegistry</span>:
+    <span class="kw">async def</span> <span class="fn">get_quote</span>(self, symbol: str) -> Quote:
+        cache_key = <span class="str">f"quote:{symbol}"</span>
+        <span class="kw">if</span> cached := <span class="kw">await</span> self._cache.get(cache_key):
+            <span class="kw">return</span> Quote.model_validate_json(cached)  <span class="cm"># cache hit</span>
+        <span class="kw">for</span> adapter <span class="kw">in</span> self._market_adapters:  <span class="cm"># priority order</span>
+            <span class="kw">try</span>:
+                result = <span class="kw">await</span> adapter.get_quote(symbol)
+                <span class="kw">await</span> self._cache.set(cache_key, result.model_dump_json(), ttl=<span class="num">60</span>)
+                <span class="kw">return</span> result
+            <span class="kw">except</span> Exception:
+                <span class="kw">continue</span>  <span class="cm"># try next adapter</span>
+        <span class="kw">raise</span> NoAdapterAvailable(symbol)</code></pre>
+            <div class="refs">
+              <strong>Learn More</strong>
+              <div class="ref-links">
+                <a class="ref-link" href="https://refactoring.guru/design-patterns/strategy" target="_blank">Strategy Pattern</a>
+                <a class="ref-link" href="https://docs.python.org/3/library/abc.html" target="_blank">Python ABCs</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REACT + VITE -->
+    <div class="section" id="react">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(34,211,238,0.15)">⚛</div>
+        <div class="section-meta">
+          <h2>React + Vite + TypeScript</h2>
+          <p>The frontend SPA — fast dev, type-safe, component-driven</p>
+        </div>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-logo" style="background:rgba(34,211,238,0.15)">⚛</div>
+            <div class="tech-title">
+              <h3>React 18 + Vite 5 + TypeScript</h3>
+              <div class="version">react@18 · vite@5 · typescript@5</div>
+              <div class="tagline">Component-based SPA with instant HMR</div>
+            </div>
+          </div>
+          <div class="tech-card-body">
+            <p>React organizes the UI into reusable components with local state. Vite replaces Webpack — it uses native ES modules during dev, giving sub-100ms hot module replacement. TypeScript catches type errors at build time, not in production.</p>
+            <div class="why-box">
+              <strong>Why React + Vite over Next.js or Streamlit?</strong>
+              <p>Streamlit is Python-only but can't render Recharts-quality dashboards. Next.js adds RSC complexity unnecessary for a client-only SPA. React + Vite gives full control over the UI without Server Components overhead. The built <code>ui/dist/</code> folder is served as static files from FastAPI — one fewer runtime to manage in production.</p>
+            </div>
+            <div class="refs">
+              <strong>Learn More</strong>
+              <div class="ref-links">
+                <a class="ref-link" href="https://react.dev/" target="_blank">React Docs</a>
+                <a class="ref-link" href="https://vitejs.dev/" target="_blank">Vite Docs</a>
+                <a class="ref-link" href="https://www.typescriptlang.org/docs/" target="_blank">TypeScript Handbook</a>
+                <a class="ref-link" href="https://react.dev/learn/thinking-in-react" target="_blank">Thinking in React</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SHADCN + TAILWIND -->
+    <div class="section" id="shadcn">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(52,211,153,0.15)">🎨</div>
+        <div class="section-meta">
+          <h2>shadcn/ui + Tailwind CSS</h2>
+          <p>Accessible components you own — styled with utility classes</p>
+        </div>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-logo" style="background:rgba(52,211,153,0.15)">🎨</div>
+            <div class="tech-title">
+              <h3>shadcn/ui + Tailwind CSS v3</h3>
+              <div class="version">shadcn components · tailwindcss@3 · class-variance-authority</div>
+              <div class="tagline">Copy-paste components built on Radix UI primitives</div>
+            </div>
+          </div>
+          <div class="tech-card-body">
+            <p>shadcn/ui isn't a component library you install — it's a collection of components you copy into <code>ui/src/components/ui/</code> and own. Each component is built on Radix UI (accessible primitives) and styled with Tailwind. You can change any detail without fighting a library's CSS specificity.</p>
+            <div class="why-box">
+              <strong>Why shadcn over MUI / Chakra / Ant Design?</strong>
+              <p>MUI, Chakra, and Ant Design inject their own CSS and have strict theming APIs. Customizing a MUI component deeply requires overriding sx props or styled-components. With shadcn, the component source lives in your codebase — edit it directly. Tailwind utility classes make it trivial to match Aurum's gold-accent dark theme.</p>
+            </div>
+            <div class="refs">
+              <strong>Learn More</strong>
+              <div class="ref-links">
+                <a class="ref-link" href="https://ui.shadcn.com/" target="_blank">shadcn/ui Docs</a>
+                <a class="ref-link" href="https://tailwindcss.com/docs" target="_blank">Tailwind CSS Docs</a>
+                <a class="ref-link" href="https://www.radix-ui.com/" target="_blank">Radix UI Primitives</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECHARTS -->
+    <div class="section" id="recharts">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(240,180,41,0.15)">📊</div>
+        <div class="section-meta">
+          <h2>Recharts</h2>
+          <p>Composable React charts for portfolio and market data</p>
+        </div>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-logo" style="background:rgba(240,180,41,0.15)">📊</div>
+            <div class="tech-title">
+              <h3>Recharts</h3>
+              <div class="version">recharts@2</div>
+              <div class="tagline">D3-backed declarative charts for React</div>
+            </div>
+          </div>
+          <div class="tech-card-body">
+            <p>Recharts wraps D3.js in React components. Instead of writing SVG by hand, you compose chart components: <code>&lt;LineChart&gt;</code>, <code>&lt;PieChart&gt;</code>, <code>&lt;AreaChart&gt;</code>. Data flows in as props; Recharts handles the D3 scales, axes, and animations.</p>
+            <div class="why-box">
+              <strong>Why Recharts over Chart.js or Victory?</strong>
+              <p>Chart.js uses Canvas (good performance, harder to customize). Victory is elegant but has a larger bundle. Recharts components are pure JSX — every axis, grid, tooltip, and legend is a React component you can style or replace. The portfolio's allocation pie, performance line, and goals projection chart are all Recharts.</p>
+            </div>
+            <div class="refs">
+              <strong>Learn More</strong>
+              <div class="ref-links">
+                <a class="ref-link" href="https://recharts.org/en-US" target="_blank">Recharts Docs</a>
+                <a class="ref-link" href="https://d3js.org/" target="_blank">D3.js (underlying)</a>
+                <a class="ref-link" href="https://recharts.org/en-US/examples" target="_blank">Recharts Examples</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TANSTACK QUERY -->
+    <div class="section" id="tanstack">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(96,165,250,0.15)">🔄</div>
+        <div class="section-meta">
+          <h2>TanStack Query</h2>
+          <p>Server-state management — caching, background refetch, optimistic updates</p>
+        </div>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-logo" style="background:rgba(96,165,250,0.15)">🔄</div>
+            <div class="tech-title">
+              <h3>TanStack Query v5</h3>
+              <div class="version">@tanstack/react-query@5</div>
+              <div class="tagline">Async state management for server data</div>
+            </div>
+          </div>
+          <div class="tech-card-body">
+            <p>TanStack Query replaces <code>useEffect</code> + <code>useState</code> for API calls. It automatically deduplicates identical requests, caches responses with configurable stale times, refetches in the background, and handles loading/error states declaratively.</p>
+            <div class="why-box">
+              <strong>Why not Redux or Zustand?</strong>
+              <p>Redux and Zustand manage client state (UI state, forms). Server data (portfolio holdings, market quotes) has different needs: cache invalidation, background updates, pagination, optimistic updates on mutation. TanStack Query was built specifically for this. Portfolio mutations use <code>useMutation</code> + <code>queryClient.invalidateQueries</code> to refresh automatically after a buy/sell.</p>
+            </div>
+            <div class="refs">
+              <strong>Learn More</strong>
+              <div class="ref-links">
+                <a class="ref-link" href="https://tanstack.com/query/latest/docs/framework/react/overview" target="_blank">TanStack Query Docs</a>
+                <a class="ref-link" href="https://tkdodo.eu/blog/practical-react-query" target="_blank">Practical React Query (blog)</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DOCKER -->
+    <div class="section" id="docker">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(96,165,250,0.15)">🐳</div>
+        <div class="section-meta">
+          <h2>Docker Compose</h2>
+          <p>Five-service local stack — reproducible across machines</p>
+        </div>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-logo" style="background:rgba(96,165,250,0.15)">🐳</div>
+            <div class="tech-title">
+              <h3>Docker Compose v2</h3>
+              <div class="version">docker-compose.yml · 5 services</div>
+              <div class="tagline">Multi-container local development environment</div>
+            </div>
+          </div>
+          <div class="tech-card-body">
+            <p>Docker Compose defines all services, networking, volumes, and health checks in one file. <code>docker compose up -d</code> starts everything. Services use health checks so Postgres is guaranteed ready before the API starts.</p>
+            <table class="compare-table">
+              <tr><th>Service</th><th>Image</th><th>Port</th><th>Purpose</th></tr>
+              <tr><td>postgres</td><td>postgres:16-alpine</td><td>5432</td><td>Primary DB</td></tr>
+              <tr><td>redis</td><td>redis:7-alpine</td><td>6379</td><td>Cache</td></tr>
+              <tr><td>chroma</td><td>chromadb/chroma:latest</td><td>8001</td><td>Vector DB</td></tr>
+              <tr><td>api</td><td>aurum-api (built)</td><td>8000</td><td>FastAPI + LangGraph</td></tr>
+              <tr><td>ui</td><td>aurum-ui (built)</td><td>5173</td><td>Vite dev server</td></tr>
+            </table>
+            <div class="why-box">
+              <strong>Why Docker Compose over bare Python + npm?</strong>
+              <p>"Works on my machine" doesn't scale. Docker Compose gives every developer (and the CI system) an identical environment — same Postgres version, same Redis config, same Chroma. Volumes persist data across container restarts; <code>--reload</code> on uvicorn gives live-reloading during development with the full Docker network.</p>
+            </div>
+            <div class="refs">
+              <strong>Learn More</strong>
+              <div class="ref-links">
+                <a class="ref-link" href="https://docs.docker.com/compose/" target="_blank">Docker Compose Docs</a>
+                <a class="ref-link" href="https://docs.docker.com/build/guide/" target="_blank">Docker Build Guide</a>
+                <a class="ref-link" href="https://docs.docker.com/compose/compose-file/05-services/#healthcheck" target="_blank">Health Checks</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALEMBIC -->
+    <div class="section" id="alembic">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(167,139,250,0.15)">🔧</div>
+        <div class="section-meta">
+          <h2>Alembic</h2>
+          <p>Database schema migrations — versioned, reversible</p>
+        </div>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-logo" style="background:rgba(167,139,250,0.15)">🔧</div>
+            <div class="tech-title">
+              <h3>Alembic</h3>
+              <div class="version">>=1.14.0</div>
+              <div class="tagline">SQLAlchemy's official migration tool</div>
+            </div>
+          </div>
+          <div class="tech-card-body">
+            <p>Alembic tracks schema changes as versioned Python files. <code>alembic upgrade head</code> runs all pending migrations. <code>alembic downgrade -1</code> rolls back one version. Auto-generation compares your SQLAlchemy models against the live DB and generates the diff.</p>
+            <div class="why-box">
+              <strong>Why Alembic over Django migrations or manual SQL?</strong>
+              <p>Django migrations are tied to Django's ORM. Alembic is the standard for SQLAlchemy projects. Manual SQL files don't track state — you have to remember what's been applied. Alembic maintains a <code>alembic_version</code> table in Postgres so it always knows the current schema version.</p>
+            </div>
+            <pre><code><span class="cm"># Generate migration from model changes</span>
+alembic revision --autogenerate -m <span class="str">"add_goals_table"</span>
+
+<span class="cm"># Apply all pending migrations (run on startup)</span>
+alembic upgrade head
+
+<span class="cm"># Rollback one version</span>
+alembic downgrade -<span class="num">1</span></code></pre>
+            <div class="refs">
+              <strong>Learn More</strong>
+              <div class="ref-links">
+                <a class="ref-link" href="https://alembic.sqlalchemy.org/en/latest/" target="_blank">Alembic Docs</a>
+                <a class="ref-link" href="https://alembic.sqlalchemy.org/en/latest/autogenerate.html" target="_blank">Autogenerate Guide</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PYTEST -->
+    <div class="section" id="pytest">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(52,211,153,0.15)">🧪</div>
+        <div class="section-meta">
+          <h2>pytest</h2>
+          <p>42 tests — unit + integration, async, mocked and real DB</p>
+        </div>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-logo" style="background:rgba(52,211,153,0.15)">🧪</div>
+            <div class="tech-title">
+              <h3>pytest + pytest-asyncio + pytest-cov</h3>
+              <div class="version">pytest>=8.3.0 + asyncio_mode="auto"</div>
+              <div class="tagline">The Python testing standard with async support</div>
+            </div>
+          </div>
+          <div class="tech-card-body">
+            <p>pytest discovers and runs tests with minimal boilerplate. <code>pytest-asyncio</code> enables <code>async def test_*()</code> functions — essential because all Aurum service code is async. <code>pytest-cov</code> generates coverage reports.</p>
+            <div class="why-box">
+              <strong>SQLite swap for test isolation</strong>
+              <p>Integration tests need a real DB but can't dirty the dev Postgres instance. Aurum's <code>conftest.py</code> sets <code>os.environ["USE_SQLITE"]="true"</code> at module level (before any src imports) so the database module creates a SQLite file instead of connecting to Postgres. Tests run in <5s without needing Docker running.</p>
+            </div>
+            <pre><code><span class="cm"># conftest.py — env vars BEFORE any src imports</span>
+<span class="kw">import</span> os
+os.environ[<span class="str">"USE_SQLITE"</span>] = <span class="str">"true"</span>
+os.environ[<span class="str">"USE_IN_MEMORY_CACHE"</span>] = <span class="str">"true"</span>
+
+<span class="cm"># Async test with TestClient</span>
+<span class="kw">def</span> <span class="fn">test_register_success</span>(client):
+    resp = client.post(<span class="str">"/api/auth/register"</span>, json={
+        <span class="str">"email"</span>: <span class="str">"u@test.com"</span>, <span class="str">"password"</span>: <span class="str">"Test1234!"</span>,
+        <span class="str">"full_name"</span>: <span class="str">"Test"</span>, <span class="str">"risk_tolerance"</span>: <span class="str">"moderate"</span>,
+        <span class="str">"knowledge_level"</span>: <span class="str">"beginner"</span>
+    })
+    <span class="kw">assert</span> resp.status_code == <span class="num">201</span>
+    <span class="kw">assert</span> <span class="str">"access_token"</span> <span class="kw">in</span> resp.json()</code></pre>
+            <div class="refs">
+              <strong>Learn More</strong>
+              <div class="ref-links">
+                <a class="ref-link" href="https://docs.pytest.org/" target="_blank">pytest Docs</a>
+                <a class="ref-link" href="https://pytest-asyncio.readthedocs.io/" target="_blank">pytest-asyncio</a>
+                <a class="ref-link" href="https://pytest-cov.readthedocs.io/" target="_blank">pytest-cov</a>
+                <a class="ref-link" href="https://docs.pytest.org/en/stable/reference/fixtures.html" target="_blank">pytest Fixtures</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:80px"></div>
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+  function scrollTo(id) {
+    document.getElementById(id).scrollIntoView({behavior:'smooth'});
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-toggle').textContent = isDark ? '🌙 Dark' : '☀ Light';
+    localStorage.setItem('aurum-theme', isDark ? 'light' : 'dark');
+  }
+
+  // Restore saved theme
+  const saved = localStorage.getItem('aurum-theme');
+  if (saved) {
+    document.documentElement.setAttribute('data-theme', saved);
+    document.getElementById('theme-toggle').textContent = saved === 'dark' ? '☀ Light' : '🌙 Dark';
+  }
+
+  // Highlight active nav item on scroll
+  const sections = document.querySelectorAll('.section');
+  const navItems = document.querySelectorAll('.nav-item');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navItems.forEach(el => el.classList.remove('active'));
+        const active = document.querySelector(`.nav-item[onclick="scrollTo('${entry.target.id}')"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, {threshold: 0.4});
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
