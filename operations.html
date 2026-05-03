@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Aurum — Functional & Operations Guide</title>
+<style>
+  :root[data-theme="dark"] {
+    --bg: #0f1117; --bg2: #161b27; --bg3: #1e2436; --bg4: #252c3f;
+    --border: #2d3654; --text: #e8eaf0; --text2: #9ba3c4; --text3: #6b7394;
+    --gold: #f0b429; --gold2: #ffd166; --gold3: #7a5a0a;
+    --green: #34d399; --blue: #60a5fa; --purple: #a78bfa; --red: #f87171;
+    --cyan: #22d3ee; --orange: #fb923c;
+    --code-bg: #0d1117; --sidebar-w: 280px;
+  }
+  :root[data-theme="light"] {
+    --bg: #f8f9fc; --bg2: #ffffff; --bg3: #f0f2f8; --bg4: #e8ecf5;
+    --border: #d0d8ed; --text: #1a1f36; --text2: #4a5280; --text3: #8890b4;
+    --gold: #b07d0a; --gold2: #d4920c; --gold3: #fef3c7;
+    --green: #059669; --blue: #2563eb; --purple: #7c3aed; --red: #dc2626;
+    --cyan: #0891b2; --orange: #ea580c;
+    --code-bg: #f0f2f8; --sidebar-w: 280px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg); color: var(--text); display: flex;
+    min-height: 100vh; font-size: 15px; line-height: 1.6; }
+
+  #sidebar {
+    width: var(--sidebar-w); background: var(--bg2); border-right: 1px solid var(--border);
+    position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto;
+    display: flex; flex-direction: column; z-index: 100;
+  }
+  #sidebar-header { padding: 20px 16px 16px; border-bottom: 1px solid var(--border); }
+  #sidebar-header h1 { font-size: 18px; font-weight: 700; color: var(--gold); }
+  #sidebar-header p { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  #sidebar nav { flex: 1; padding: 12px 0; }
+  .nav-section { padding: 8px 16px 4px; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); }
+  .nav-item { display: block; padding: 7px 16px; font-size: 13px; color: var(--text2);
+    text-decoration: none; border-left: 3px solid transparent; transition: all 0.15s; cursor: pointer; }
+  .nav-item:hover, .nav-item.active { color: var(--gold); border-left-color: var(--gold); background: var(--bg3); }
+  #sidebar-footer { padding: 12px 16px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text3); }
+
+  #main { margin-left: var(--sidebar-w); flex: 1; max-width: calc(100vw - var(--sidebar-w)); }
+  #topbar {
+    position: sticky; top: 0; background: var(--bg2); border-bottom: 1px solid var(--border);
+    padding: 12px 32px; display: flex; align-items: center; justify-content: space-between;
+    z-index: 50; gap: 16px;
+  }
+  #topbar-title { font-size: 14px; font-weight: 600; color: var(--text2); }
+  #theme-toggle {
+    background: var(--bg3); border: 1px solid var(--border); color: var(--text2);
+    padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px;
+    transition: all 0.2s;
+  }
+  #theme-toggle:hover { background: var(--bg4); color: var(--text); }
+
+  #content { padding: 40px 32px; max-width: 900px; }
+
+  .section { margin-bottom: 60px; scroll-margin-top: 80px; }
+  h2 { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 16px;
+    padding-bottom: 10px; border-bottom: 2px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  h3 { font-size: 16px; font-weight: 600; color: var(--gold); margin: 24px 0 10px; }
+  h4 { font-size: 14px; font-weight: 600; color: var(--text2); margin: 18px 0 8px; }
+  p { color: var(--text2); margin-bottom: 12px; }
+  ul, ol { color: var(--text2); padding-left: 20px; margin-bottom: 12px; }
+  li { margin-bottom: 4px; }
+  a { color: var(--gold); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  code { background: var(--code-bg); color: var(--cyan); padding: 2px 6px;
+    border-radius: 4px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px;
+    border: 1px solid var(--border); }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 20px; overflow-x: auto; margin: 12px 0 16px; }
+  pre code { background: none; border: none; padding: 0; font-size: 13px; color: var(--text); }
+  .comment { color: var(--text3); }
+  .kw { color: var(--purple); }
+  .str { color: var(--green); }
+  .num { color: var(--orange); }
+
+  .card {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 12px;
+  }
+  .card-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .card-body { font-size: 13px; color: var(--text2); }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge-gold { background: rgba(240,180,41,0.15); color: var(--gold); border: 1px solid rgba(240,180,41,0.3); }
+  .badge-green { background: rgba(52,211,153,0.12); color: var(--green); border: 1px solid rgba(52,211,153,0.25); }
+  .badge-blue { background: rgba(96,165,250,0.12); color: var(--blue); border: 1px solid rgba(96,165,250,0.25); }
+  .badge-purple { background: rgba(167,139,250,0.12); color: var(--purple); border: 1px solid rgba(167,139,250,0.25); }
+  .badge-red { background: rgba(248,113,113,0.12); color: var(--red); border: 1px solid rgba(248,113,113,0.25); }
+  .badge-orange { background: rgba(251,146,60,0.12); color: var(--orange); border: 1px solid rgba(251,146,60,0.25); }
+
+  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 13px; }
+  th { background: var(--bg3); color: var(--text); font-weight: 600; padding: 10px 14px; text-align: left;
+    border-bottom: 2px solid var(--border); }
+  td { padding: 9px 14px; border-bottom: 1px solid var(--border); color: var(--text2); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg3); }
+
+  .callout { border-radius: 8px; padding: 14px 16px; margin: 16px 0; font-size: 13px; border-left: 4px solid; }
+  .callout-info { background: rgba(96,165,250,0.08); border-color: var(--blue); color: var(--text2); }
+  .callout-warn { background: rgba(251,146,60,0.08); border-color: var(--orange); color: var(--text2); }
+  .callout-tip { background: rgba(52,211,153,0.08); border-color: var(--green); color: var(--text2); }
+
+  .arch-box {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 20px; margin: 16px 0; font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 12px; color: var(--text2); line-height: 1.8;
+  }
+  .arch-label { color: var(--gold); font-weight: 700; }
+  .arch-arrow { color: var(--text3); }
+
+  .flow-step {
+    display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px;
+  }
+  .flow-num {
+    background: var(--gold); color: #000; border-radius: 50%; width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center; font-size: 11px;
+    font-weight: 700; flex-shrink: 0; margin-top: 2px;
+  }
+
+  .doc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; margin: 12px 0; }
+  .doc-item {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 12px; font-size: 12px;
+  }
+  .doc-item .doc-name { color: var(--text); font-weight: 500; }
+  .doc-item .doc-cat { color: var(--text3); font-size: 11px; margin-top: 2px; }
+
+  .endpoint-row { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px;
+    padding: 10px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; font-size: 13px; }
+  .method { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; font-family: monospace; }
+  .method-get { background: rgba(52,211,153,0.15); color: var(--green); }
+  .method-post { background: rgba(96,165,250,0.15); color: var(--blue); }
+  .method-delete { background: rgba(248,113,113,0.15); color: var(--red); }
+  .method-ws { background: rgba(167,139,250,0.15); color: var(--purple); }
+  .endpoint-path { color: var(--cyan); font-family: monospace; }
+  .endpoint-desc { color: var(--text2); margin-left: auto; font-size: 12px; }
+
+  @media (max-width: 768px) {
+    #sidebar { transform: translateX(-100%); }
+    #main { margin-left: 0; }
+    .grid2, .grid3 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<aside id="sidebar">
+  <div id="sidebar-header">
+    <h1>⚜️ Aurum</h1>
+    <p>Functional &amp; Operations Guide</p>
+  </div>
+  <nav>
+    <div class="nav-section">Overview</div>
+    <a class="nav-item active" onclick="scrollTo('overview')">What Is Aurum?</a>
+    <a class="nav-item" onclick="scrollTo('architecture')">System Architecture</a>
+    <a class="nav-item" onclick="scrollTo('data-flow')">Chat Data Flow</a>
+
+    <div class="nav-section">Operations</div>
+    <a class="nav-item" onclick="scrollTo('quickstart')">Quick Start</a>
+    <a class="nav-item" onclick="scrollTo('env')">Environment Variables</a>
+    <a class="nav-item" onclick="scrollTo('llm')">LLM Providers</a>
+    <a class="nav-item" onclick="scrollTo('admin')">Admin Dashboard</a>
+
+    <div class="nav-section">RAG Knowledge Base</div>
+    <a class="nav-item" onclick="scrollTo('rag-how')">How RAG Works</a>
+    <a class="nav-item" onclick="scrollTo('rag-content')">Current Content</a>
+    <a class="nav-item" onclick="scrollTo('rag-add')">Adding Documents</a>
+    <a class="nav-item" onclick="scrollTo('rag-categories')">Categories &amp; Routing</a>
+    <a class="nav-item" onclick="scrollTo('rag-ingest')">Running Ingest</a>
+
+    <div class="nav-section">ChromaDB</div>
+    <a class="nav-item" onclick="scrollTo('chroma-inspect')">Inspecting the Store</a>
+    <a class="nav-item" onclick="scrollTo('chroma-manage')">Managing Documents</a>
+
+    <div class="nav-section">Reference</div>
+    <a class="nav-item" onclick="scrollTo('api')">API Endpoints</a>
+    <a class="nav-item" onclick="scrollTo('troubleshoot')">Troubleshooting</a>
+  </nav>
+  <div id="sidebar-footer">
+    <div>v1.0 · May 2025</div>
+    <div style="margin-top:6px">
+      <a href="techstack.html" style="color:var(--gold)">Tech Stack Guide →</a>
+    </div>
+  </div>
+</aside>
+
+<main id="main">
+  <div id="topbar">
+    <span id="topbar-title">⚜️ Aurum — Functional &amp; Operations Guide</span>
+    <button id="theme-toggle" onclick="toggleTheme()">☀️ Light</button>
+  </div>
+  <div id="content">
+
+    <!-- ═══════════════════════════════════════════ OVERVIEW -->
+    <section class="section" id="overview">
+      <h2>🏦 What Is Aurum?</h2>
+      <p>
+        Aurum is a self-hosted AI-powered financial education assistant. Users can chat about
+        investing, their portfolio, market data, tax strategies, and personal finance goals.
+        It combines a curated knowledge base (RAG) with real-time market data and a multi-agent
+        LangGraph pipeline to route each question to the right specialized agent.
+      </p>
+      <div class="grid3">
+        <div class="card">
+          <div class="card-title">🤖 AI Chat</div>
+          <div class="card-body">Multi-agent LangGraph pipeline with supervisor routing, RAG retrieval, and streaming responses.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">📊 Portfolio</div>
+          <div class="card-body">Track holdings, view allocation, monitor gain/loss with manual entry or import.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">📈 Market Data</div>
+          <div class="card-body">Live quotes, index prices, and news via Alpha Vantage / Yahoo Finance.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🎯 Goals</div>
+          <div class="card-body">Set and track savings goals (retirement, house, emergency fund, college).</div>
+        </div>
+        <div class="card">
+          <div class="card-title">📰 News</div>
+          <div class="card-body">Financial news feed with AI-powered summaries and sentiment tagging.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🛡️ Admin</div>
+          <div class="card-body">Token usage dashboard, per-message traces, user analytics, LangSmith integration.</div>
+        </div>
+      </div>
+      <div class="callout callout-info">
+        <strong>Disclaimer notice:</strong> Aurum is an educational tool. All responses include a disclaimer
+        that the content does not constitute financial advice. This text is configurable in <code>config.yaml</code>.
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ ARCHITECTURE -->
+    <section class="section" id="architecture">
+      <h2>🏗️ System Architecture</h2>
+      <p>Aurum runs as five Docker services on a shared network (<code>aurum_net</code>):</p>
+
+      <div class="arch-box">
+<span class="arch-label">Browser</span>  :5173
+   │
+   │  HTTP + WebSocket
+   ▼
+<span class="arch-label">UI</span>  (React + Vite)          <span class="comment">── :5173 (dev) or static from api in prod</span>
+   │
+   │  REST + WebSocket /api/*
+   ▼
+<span class="arch-label">API</span>  (FastAPI + uvicorn)      <span class="comment">── :8000   SQLAlchemy async → Postgres</span>
+   │                                           Redis cache for market data
+   │  LangGraph astream_events
+   ▼
+<span class="arch-label">LangGraph Graph</span>
+   ├─ supervisor_route  →  gpt-4o-mini / claude / etc.
+   ├─ retrieve_rag      →  ChromaDB query
+   ├─ [agents]          →  qa · portfolio · market · goals · news · tax
+   └─ synthesizer       →  final response
+   │
+   ├──▶ <span class="arch-label">Postgres</span>  :5432    <span class="comment">── users, conversations, messages, portfolios, goals, chat_traces</span>
+   ├──▶ <span class="arch-label">Redis</span>     :6379    <span class="comment">── market quote cache (TTL 60s), history cache (TTL 300s)</span>
+   └──▶ <span class="arch-label">ChromaDB</span>  :8001    <span class="comment">── finance_kb collection, cosine similarity, 21 docs → 30+ chunks</span>
+      </div>
+
+      <h3>Service Ports</h3>
+      <table>
+        <tr><th>Service</th><th>Internal Port</th><th>Host Port</th><th>Notes</th></tr>
+        <tr><td>postgres</td><td>5432</td><td>5432</td><td>Persistent volume <code>postgres_data</code></td></tr>
+        <tr><td>redis</td><td>6379</td><td>6379</td><td>Persistent volume <code>redis_data</code></td></tr>
+        <tr><td>chroma</td><td>8000</td><td>8001</td><td>Persistent volume <code>chroma_data</code></td></tr>
+        <tr><td>api</td><td>8000</td><td>8000</td><td>Hot-reload in dev, source mounted at <code>/app</code></td></tr>
+        <tr><td>ui</td><td>5173</td><td>5173</td><td>Vite dev server, proxies <code>/api</code> to :8000</td></tr>
+      </table>
+
+      <div class="callout callout-info">
+        ChromaDB is exposed on host port <strong>8001</strong> to avoid conflicting with the API on 8000.
+        Inside Docker the API reaches it via <code>CHROMA_HOST=chroma CHROMA_PORT=8000</code>.
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ DATA FLOW -->
+    <section class="section" id="data-flow">
+      <h2>🔄 Chat Data Flow</h2>
+      <p>What happens end-to-end when a user sends a message:</p>
+
+      <div class="flow-step"><div class="flow-num">1</div><div>
+        <strong>WebSocket connects</strong> — browser opens <code>ws://localhost:8000/api/chat/ws?conversation_id=…&amp;token=…</code>.
+        JWT is validated on connect; if invalid, the connection is rejected.
+      </div></div>
+      <div class="flow-step"><div class="flow-num">2</div><div>
+        <strong>Message received</strong> — raw text arrives. A <code>HumanMessage</code> is wrapped and passed to LangGraph
+        with <code>thread_id = conversation_id</code>.
+      </div></div>
+      <div class="flow-step"><div class="flow-num">3</div><div>
+        <strong>Supervisor routes</strong> — <code>supervisor_route</code> calls the LLM to decide which agents to invoke
+        (<code>qa</code>, <code>portfolio</code>, <code>market</code>, <code>goals</code>, <code>news</code>, <code>tax</code>)
+        and which RAG categories to search. Returns intent, routing_reason, and confidence.
+      </div></div>
+      <div class="flow-step"><div class="flow-num">4</div><div>
+        <strong>RAG retrieval</strong> — <code>retrieve_rag</code> queries ChromaDB with the user's message,
+        optionally filtered to the chosen categories. Returns top-5 chunks by cosine similarity.
+      </div></div>
+      <div class="flow-step"><div class="flow-num">5</div><div>
+        <strong>Agents run</strong> — selected agents run in parallel (or sequentially depending on routing).
+        Each agent has its own system prompt and uses the RAG context + conversation history.
+        <code>on_chat_model_stream</code> events stream tokens to the browser in real time.
+      </div></div>
+      <div class="flow-step"><div class="flow-num">6</div><div>
+        <strong>Synthesizer</strong> — combines agent outputs into a single coherent response, adds citations
+        for any RAG sources used.
+      </div></div>
+      <div class="flow-step"><div class="flow-num">7</div><div>
+        <strong>Persist</strong> — <code>persist_turn</code> saves the assistant message to Postgres.
+        A <code>ChatTrace</code> record is written with: intent, routing decision, RAG docs retrieved,
+        per-agent token counts and latency, supervisor confidence.
+      </div></div>
+      <div class="flow-step"><div class="flow-num">8</div><div>
+        <strong>Final frame</strong> — a <code>{"type":"final"}</code> WebSocket frame is sent with
+        <code>message_id</code>, full content, agents_used, and citations list.
+      </div></div>
+
+      <h3>WebSocket Frame Types</h3>
+      <table>
+        <tr><th>Type</th><th>Payload</th><th>When</th></tr>
+        <tr><td><code>agent_start</code></td><td><code>{agent: "tax"}</code></td><td>Agent node begins</td></tr>
+        <tr><td><code>agent_end</code></td><td><code>{agent: "tax"}</code></td><td>Agent node finishes</td></tr>
+        <tr><td><code>token</code></td><td><code>{delta: "..."}</code></td><td>Each streaming token</td></tr>
+        <tr><td><code>citation</code></td><td><code>{source_title, source_url, category}</code></td><td>Per RAG source used</td></tr>
+        <tr><td><code>final</code></td><td><code>{message_id, content, agents_used, citations}</code></td><td>Stream complete</td></tr>
+        <tr><td><code>error</code></td><td><code>{message: "..."}</code></td><td>On exception</td></tr>
+      </table>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ QUICK START -->
+    <section class="section" id="quickstart">
+      <h2>🚀 Quick Start</h2>
+
+      <h3>Prerequisites</h3>
+      <ul>
+        <li>Docker Desktop (or Docker Engine + Compose v2)</li>
+        <li>An LLM API key (OpenAI, Anthropic, Google, or AWS Bedrock)</li>
+        <li>~4 GB free disk space for images + data volumes</li>
+      </ul>
+
+      <h3>First-Time Setup</h3>
+      <pre><code><span class="comment"># 1. Copy and edit environment file</span>
+cp .env.example .env
+
+<span class="comment"># 2. Start all services</span>
+docker compose up -d
+
+<span class="comment"># 3. Run DB migrations</span>
+docker compose exec api alembic upgrade head
+
+<span class="comment"># 4. Seed RAG knowledge base</span>
+docker compose --profile seed run --rm rag-ingest
+
+<span class="comment"># 5. Open the app</span>
+open http://localhost:5173</code></pre>
+
+      <h3>Day-to-Day Commands</h3>
+      <pre><code><span class="comment"># Start all services</span>
+docker compose up -d
+
+<span class="comment"># Stop all services</span>
+docker compose down
+
+<span class="comment"># View logs (all services)</span>
+docker compose logs -f
+
+<span class="comment"># View logs (API only)</span>
+docker compose logs -f api
+
+<span class="comment"># Restart API after code change</span>
+docker compose restart api
+<span class="comment"># (or just edit a file — uvicorn --reload detects changes automatically)</span>
+
+<span class="comment"># Run DB migration after schema change</span>
+docker compose exec api alembic upgrade head
+
+<span class="comment"># Open Postgres shell</span>
+docker compose exec postgres psql -U aurum -d aurum
+
+<span class="comment"># Check ChromaDB health</span>
+curl http://localhost:8001/api/v2/heartbeat</code></pre>
+
+      <h3>Nuclear Reset</h3>
+      <div class="callout callout-warn">
+        This destroys all data: users, conversations, portfolio, and the RAG vector store.
+      </div>
+      <pre><code>docker compose down -v   <span class="comment"># removes named volumes</span>
+docker compose up -d
+docker compose exec api alembic upgrade head
+docker compose --profile seed run --rm rag-ingest</code></pre>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ ENV VARS -->
+    <section class="section" id="env">
+      <h2>⚙️ Environment Variables</h2>
+      <p>All config lives in <code>.env</code> (copy from <code>.env.example</code>). Variables not marked required have safe defaults.</p>
+
+      <h3>Required</h3>
+      <table>
+        <tr><th>Variable</th><th>Example</th><th>Description</th></tr>
+        <tr><td><code>LLM_PROVIDER</code></td><td><code>openai</code></td><td>LLM backend: <code>openai</code>, <code>anthropic</code>, <code>google</code>, <code>bedrock</code></td></tr>
+        <tr><td><code>LLM_MODEL</code></td><td><code>gpt-4o-mini</code></td><td>Model name for the active provider</td></tr>
+        <tr><td><code>OPENAI_API_KEY</code></td><td><code>sk-proj-...</code></td><td>Required when <code>LLM_PROVIDER=openai</code></td></tr>
+        <tr><td><code>SECRET_KEY</code></td><td><em>random 64-char hex</em></td><td>JWT signing secret — generate with <code>openssl rand -hex 32</code></td></tr>
+      </table>
+
+      <h3>Database</h3>
+      <table>
+        <tr><th>Variable</th><th>Default</th><th>Description</th></tr>
+        <tr><td><code>POSTGRES_DB</code></td><td><code>aurum</code></td><td>Database name</td></tr>
+        <tr><td><code>POSTGRES_USER</code></td><td><code>aurum</code></td><td>Postgres user</td></tr>
+        <tr><td><code>POSTGRES_PASSWORD</code></td><td><code>aurum_dev</code></td><td>Postgres password — change in prod</td></tr>
+        <tr><td><code>DATABASE_URL</code></td><td><em>auto-built from above</em></td><td>Full asyncpg connection string (set by docker-compose)</td></tr>
+      </table>
+
+      <h3>LLM Tuning</h3>
+      <table>
+        <tr><th>Variable</th><th>Default</th><th>Description</th></tr>
+        <tr><td><code>LLM_MAX_TOKENS</code></td><td><code>4096</code></td><td>Max tokens per LLM response</td></tr>
+        <tr><td><code>LLM_TEMPERATURE</code></td><td><code>0.3</code></td><td>Lower = more deterministic; 0.0–1.0</td></tr>
+      </table>
+
+      <h3>Admin &amp; Observability</h3>
+      <table>
+        <tr><th>Variable</th><th>Example</th><th>Description</th></tr>
+        <tr><td><code>ADMIN_EMAILS</code></td><td><code>you@example.com</code></td><td>Comma-separated list of admin users</td></tr>
+        <tr><td><code>LANGCHAIN_TRACING_V2</code></td><td><code>false</code></td><td>Set <code>true</code> to enable LangSmith tracing</td></tr>
+        <tr><td><code>LANGCHAIN_API_KEY</code></td><td><code>ls__...</code></td><td>LangSmith API key (only needed if tracing enabled)</td></tr>
+        <tr><td><code>LANGCHAIN_PROJECT</code></td><td><code>aurum</code></td><td>LangSmith project name</td></tr>
+      </table>
+
+      <h3>External Data APIs (optional)</h3>
+      <table>
+        <tr><th>Variable</th><th>Description</th></tr>
+        <tr><td><code>ALPHA_VANTAGE_API_KEY</code></td><td>Real-time stock quotes. Free tier at alphavantage.co</td></tr>
+        <tr><td><code>NASDAQ_DATA_LINK_API_KEY</code></td><td>Nasdaq Data Link (formerly Quandl) for historical data</td></tr>
+      </table>
+      <div class="callout callout-tip">
+        Without external API keys, Aurum falls back to Yahoo Finance (no key required) for market data.
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ LLM PROVIDERS -->
+    <section class="section" id="llm">
+      <h2>🤖 LLM Providers</h2>
+      <p>Switch providers by changing two lines in <code>.env</code> — no code changes needed.</p>
+
+      <table>
+        <tr><th>Provider</th><th>LLM_PROVIDER</th><th>LLM_MODEL example</th><th>API Key Var</th></tr>
+        <tr><td>OpenAI</td><td><code>openai</code></td><td><code>gpt-4o-mini</code>, <code>gpt-4o</code></td><td><code>OPENAI_API_KEY</code></td></tr>
+        <tr><td>Anthropic</td><td><code>anthropic</code></td><td><code>claude-sonnet-4-6</code>, <code>claude-opus-4-7</code></td><td><code>ANTHROPIC_API_KEY</code></td></tr>
+        <tr><td>Google</td><td><code>google</code></td><td><code>gemini-2.0-flash</code></td><td><code>GOOGLE_API_KEY</code></td></tr>
+        <tr><td>AWS Bedrock</td><td><code>bedrock</code></td><td><code>us.anthropic.claude-3-5-sonnet-20241022-v2:0</code></td><td><code>AWS_ACCESS_KEY_ID</code> + <code>AWS_SECRET_ACCESS_KEY</code></td></tr>
+      </table>
+
+      <h3>Cost Reference (approx. USD per 1M tokens)</h3>
+      <table>
+        <tr><th>Model</th><th>Input</th><th>Output</th><th>Notes</th></tr>
+        <tr><td>gpt-4o-mini</td><td>$0.15</td><td>$0.60</td><td>Best value for most queries</td></tr>
+        <tr><td>gpt-4o</td><td>$2.50</td><td>$10.00</td><td>Stronger reasoning</td></tr>
+        <tr><td>claude-sonnet-4-6</td><td>$3.00</td><td>$15.00</td><td>Strong, fast</td></tr>
+        <tr><td>claude-opus-4-7</td><td>$15.00</td><td>$75.00</td><td>Most capable Anthropic model</td></tr>
+      </table>
+
+      <div class="callout callout-tip">
+        After changing <code>LLM_PROVIDER</code> or <code>LLM_MODEL</code>, restart the API container:
+        <code>docker compose restart api</code>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ ADMIN -->
+    <section class="section" id="admin">
+      <h2>🛡️ Admin Dashboard</h2>
+
+      <h3>Enabling Admin Access</h3>
+      <p>Add your email to <code>ADMIN_EMAILS</code> in <code>.env</code> (comma-separated for multiple admins):</p>
+      <pre><code>ADMIN_EMAILS=you@example.com,colleague@example.com</code></pre>
+      <p>Restart the API. Log in — the Admin nav item appears in the sidebar automatically.</p>
+
+      <h3>Dashboard Tabs</h3>
+      <div class="grid3">
+        <div class="card">
+          <div class="card-title">Overview Tab</div>
+          <div class="card-body">Total users, conversations, messages. Aggregate token usage and estimated cost. Daily token usage chart (Recharts).</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Conversations Tab</div>
+          <div class="card-body">Per-conversation token totals, agents used, estimated cost. Expand any row to see the full trace: routing decision, RAG docs retrieved, per-agent latency timeline.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Users Tab</div>
+          <div class="card-body">All registered users with conversation count, message count, total tokens, and estimated cost.</div>
+        </div>
+      </div>
+
+      <h3>Trace Detail (per message)</h3>
+      <ul>
+        <li><strong>Routing Chip</strong> — intent label, supervisor confidence score, selected agent pills</li>
+        <li><strong>RAG Docs</strong> — each retrieved document with source title, category, content preview</li>
+        <li><strong>Agent Timeline</strong> — per-agent bar showing tokens and latency in milliseconds</li>
+        <li><strong>Response Preview</strong> — the full assistant response (collapsible)</li>
+      </ul>
+
+      <h3>LangSmith Integration</h3>
+      <p>For deep trace debugging (full prompt/response at each node), enable LangSmith:</p>
+      <pre><code>LANGCHAIN_TRACING_V2=true
+LANGCHAIN_API_KEY=ls__your_key_here
+LANGCHAIN_PROJECT=aurum</code></pre>
+      <p>No code changes required. Traces appear on <a href="https://smith.langchain.com" target="_blank">smith.langchain.com</a>.
+        The Admin Overview tab shows a direct link to your project when tracing is enabled.</p>
+
+      <h3>Admin API Endpoints</h3>
+      <div class="endpoint-row">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">/api/admin/stats</span>
+        <span class="endpoint-desc">Aggregate counts + token totals + LangSmith status</span>
+      </div>
+      <div class="endpoint-row">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">/api/admin/conversations?page=1&amp;per_page=20&amp;user_id=…</span>
+        <span class="endpoint-desc">Paginated conversation list with token totals</span>
+      </div>
+      <div class="endpoint-row">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">/api/admin/conversations/{id}/trace</span>
+        <span class="endpoint-desc">Full message trace for one conversation</span>
+      </div>
+      <div class="endpoint-row">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">/api/admin/users?page=1&amp;per_page=20</span>
+        <span class="endpoint-desc">User list with usage stats</span>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ RAG HOW -->
+    <section class="section" id="rag-how">
+      <h2>📚 How RAG Works</h2>
+      <p>
+        RAG (Retrieval-Augmented Generation) lets the AI answer questions using your specific
+        knowledge base rather than relying solely on what the model was trained on.
+      </p>
+
+      <div class="flow-step"><div class="flow-num">1</div><div>
+        <strong>Ingest</strong> — Markdown files are parsed, chunked into ~800-word blocks with 100-word overlap,
+        and stored in ChromaDB as vector embeddings alongside their metadata.
+      </div></div>
+      <div class="flow-step"><div class="flow-num">2</div><div>
+        <strong>Route</strong> — The supervisor decides which <em>categories</em> are relevant to the query
+        (e.g. a tax question → <code>["tax"]</code>). This narrows the search space.
+      </div></div>
+      <div class="flow-step"><div class="flow-num">3</div><div>
+        <strong>Retrieve</strong> — ChromaDB runs a cosine similarity search against the query,
+        filtered to the selected categories, returning the top 5 chunks.
+      </div></div>
+      <div class="flow-step"><div class="flow-num">4</div><div>
+        <strong>Inject</strong> — Retrieved chunks are formatted and injected into the agent's context
+        as <em>Source [N]: …</em> blocks. The model cites sources in its response.
+      </div></div>
+      <div class="flow-step"><div class="flow-num">5</div><div>
+        <strong>Cite</strong> — Any <code>source_title</code> and <code>source_url</code> from retrieved docs
+        appear as citation links below the response in the chat UI.
+      </div></div>
+
+      <div class="callout callout-warn">
+        <strong>source_url is citation metadata only — it is NOT scraped.</strong>
+        The ingest script reads only the markdown file's text content. If you add a <code>source_url</code>,
+        it appears as a clickable reference link in responses but the URL's content is not fetched or indexed.
+        To index a web page, you must copy its text into a <code>.md</code> file yourself.
+      </div>
+
+      <h3>ChromaDB Embedding</h3>
+      <p>By default ChromaDB uses its built-in <code>all-MiniLM-L6-v2</code> embedding model (runs locally, no API call).
+        The collection uses <strong>cosine</strong> distance for similarity ranking.
+        The collection name is <code>finance_kb</code>.</p>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ RAG CONTENT -->
+    <section class="section" id="rag-content">
+      <h2>📄 Current Knowledge Base Content</h2>
+      <p>
+        The 21 seed documents were written as original educational content when Aurum was built.
+        They are <strong>not scraped from any external source</strong> — all <code>source_url</code> fields are empty.
+        The content covers well-established personal finance concepts (similar to what you'd find
+        on Investopedia or in any financial literacy curriculum).
+      </p>
+
+      <h4>investing/ — 6 documents</h4>
+      <div class="doc-grid">
+        <div class="doc-item"><div class="doc-name">what-is-investing.md</div><div class="doc-cat">investing basics</div></div>
+        <div class="doc-item"><div class="doc-name">dollar-cost-averaging.md</div><div class="doc-cat">DCA strategy</div></div>
+        <div class="doc-item"><div class="doc-name">index-funds.md</div><div class="doc-cat">passive investing</div></div>
+        <div class="doc-item"><div class="doc-name">etfs-explained.md</div><div class="doc-cat">ETF mechanics</div></div>
+        <div class="doc-item"><div class="doc-name">risk-and-return.md</div><div class="doc-cat">risk theory</div></div>
+        <div class="doc-item"><div class="doc-name">compound-interest.md</div><div class="doc-cat">compounding math</div></div>
+      </div>
+
+      <h4>portfolio/ — 3 documents</h4>
+      <div class="doc-grid">
+        <div class="doc-item"><div class="doc-name">diversification.md</div><div class="doc-cat">portfolio theory</div></div>
+        <div class="doc-item"><div class="doc-name">asset-allocation.md</div><div class="doc-cat">allocation strategy</div></div>
+        <div class="doc-item"><div class="doc-name">rebalancing.md</div><div class="doc-cat">rebalancing mechanics</div></div>
+      </div>
+
+      <h4>tax/ — 4 documents</h4>
+      <div class="doc-grid">
+        <div class="doc-item"><div class="doc-name">capital-gains.md</div><div class="doc-cat">US capital gains tax</div></div>
+        <div class="doc-item"><div class="doc-name">tax-advantaged-accounts.md</div><div class="doc-cat">401k, IRA, HSA, 529</div></div>
+        <div class="doc-item"><div class="doc-name">retirement-accounts.md</div><div class="doc-cat">Roth vs Traditional</div></div>
+        <div class="doc-item"><div class="doc-name">tax-loss-harvesting.md</div><div class="doc-cat">loss harvesting</div></div>
+      </div>
+
+      <h4>goals/ — 4 documents</h4>
+      <div class="doc-grid">
+        <div class="doc-item"><div class="doc-name">emergency-fund.md</div><div class="doc-cat">emergency savings</div></div>
+        <div class="doc-item"><div class="doc-name">retirement-planning.md</div><div class="doc-cat">retirement math</div></div>
+        <div class="doc-item"><div class="doc-name">house-down-payment.md</div><div class="doc-cat">home buying savings</div></div>
+        <div class="doc-item"><div class="doc-name">college-savings-529.md</div><div class="doc-cat">529 plan guide</div></div>
+      </div>
+
+      <h4>market/ — 4 documents</h4>
+      <div class="doc-grid">
+        <div class="doc-item"><div class="doc-name">how-stock-market-works.md</div><div class="doc-cat">market mechanics</div></div>
+        <div class="doc-item"><div class="doc-name">market-cycles.md</div><div class="doc-cat">bull/bear cycles</div></div>
+        <div class="doc-item"><div class="doc-name">bonds-and-interest-rates.md</div><div class="doc-cat">fixed income</div></div>
+        <div class="doc-item"><div class="doc-name">reading-financial-statements.md</div><div class="doc-cat">fundamental analysis</div></div>
+      </div>
+
+      <h3>Replacing with Properly Sourced Content</h3>
+      <p>Good free/public-domain sources to replace these with:</p>
+      <table>
+        <tr><th>Source</th><th>URL</th><th>License</th></tr>
+        <tr><td>IRS Publications (550, 505, 590)</td><td>irs.gov/publications</td><td>Public domain (US Gov)</td></tr>
+        <tr><td>SEC Investor Education</td><td>investor.gov</td><td>Public domain (US Gov)</td></tr>
+        <tr><td>CFPB (Consumer Finance)</td><td>consumerfinance.gov</td><td>Public domain</td></tr>
+        <tr><td>Investopedia</td><td>investopedia.com</td><td>Attribution required; check ToS</td></tr>
+        <tr><td>Your firm's own content</td><td>—</td><td>Owned — best option</td></tr>
+      </table>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ RAG ADD -->
+    <section class="section" id="rag-add">
+      <h2>➕ Adding Documents to the Knowledge Base</h2>
+
+      <h3>Step 1 — Create the Markdown file</h3>
+      <p>Place the file in the correct category subfolder under <code>src/rag/seed/</code>:</p>
+      <pre><code>src/rag/seed/
+  investing/     ← for investing concepts
+  portfolio/     ← for portfolio management
+  tax/           ← for tax strategies
+  goals/         ← for savings goals
+  market/        ← for market mechanics</code></pre>
+
+      <p>The file format is Markdown with YAML frontmatter:</p>
+      <pre><code>---
+source_title: How to Read an Earnings Report
+category: market
+source_url: https://investor.gov/...   <span class="comment"># shown as citation link — NOT scraped</span>
+---
+
+# How to Read an Earnings Report
+
+An earnings report (Form 10-Q or 10-K) is filed quarterly or annually...
+
+## Revenue and Net Income
+...
+
+## Key Ratios to Watch
+- **EPS** (Earnings Per Share): net income divided by shares outstanding
+- **P/E Ratio**: price divided by EPS — how much investors pay per dollar of earnings
+...</code></pre>
+
+      <div class="callout callout-info">
+        <strong>Frontmatter fields:</strong>
+        <ul style="margin-top:6px">
+          <li><code>source_title</code> — displayed as the citation label in chat responses. Falls back to the filename if omitted.</li>
+          <li><code>category</code> — should match the folder name. Used for category-filtered retrieval.</li>
+          <li><code>source_url</code> — optional URL shown as a clickable link in citations. Leave empty if no external source.</li>
+        </ul>
+      </div>
+
+      <h3>Step 2 — Run ingest</h3>
+      <pre><code><span class="comment"># Additive — adds new docs, keeps existing ones</span>
+docker compose exec api python -m src.rag.ingest --seed-dir src/rag/seed
+
+<span class="comment"># Full rebuild — clears all docs then re-ingests everything</span>
+docker compose exec api python -m src.rag.ingest --seed-dir src/rag/seed --clear
+
+<span class="comment"># Or using the docker compose profile (equivalent)</span>
+docker compose --profile seed run --rm rag-ingest</code></pre>
+
+      <h3>Step 3 — Verify</h3>
+      <pre><code><span class="comment"># Check total chunk count in ChromaDB</span>
+docker compose exec api python -c "
+from src.rag.chroma_store import ChromaStore
+s = ChromaStore()
+print('Total chunks:', s.count())
+"</code></pre>
+
+      <h3>Chunking Behavior</h3>
+      <p>Each document is split into overlapping chunks before storage:</p>
+      <table>
+        <tr><th>Parameter</th><th>Default</th><th>Description</th></tr>
+        <tr><td><code>CHUNK_SIZE</code></td><td>800 words</td><td>Maximum words per chunk</td></tr>
+        <tr><td><code>CHUNK_OVERLAP</code></td><td>100 words</td><td>Words shared between adjacent chunks</td></tr>
+      </table>
+      <p>A 1,200-word article produces 2 chunks. A 3,000-word article produces ~5 chunks.
+        Each chunk gets a SHA256-based ID derived from <code>filepath:chunk_index</code>,
+        so re-ingesting the same file is idempotent (upsert — no duplicates).</p>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ RAG CATEGORIES -->
+    <section class="section" id="rag-categories">
+      <h2>🗂️ Categories &amp; Routing</h2>
+      <p>
+        Categories are the bridge between user intent and the right knowledge. The supervisor LLM
+        assigns one or more categories to each query; the RAG retriever filters ChromaDB to only
+        those categories before running the similarity search.
+      </p>
+
+      <table>
+        <tr><th>Category</th><th>Agent</th><th>Example Queries</th></tr>
+        <tr>
+          <td><span class="badge badge-blue">investing</span></td>
+          <td><code>qa</code></td>
+          <td>"What is dollar-cost averaging?" · "How do index funds work?"</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-green">portfolio</span></td>
+          <td><code>portfolio</code></td>
+          <td>"How diversified am I?" · "Should I rebalance?"</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-orange">market</span></td>
+          <td><code>market</code></td>
+          <td>"What's the S&amp;P 500 at?" · "Explain P/E ratios"</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-purple">goals</span></td>
+          <td><code>goals</code></td>
+          <td>"Help me plan for retirement" · "How much for a house down payment?"</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-gold">tax</span></td>
+          <td><code>tax</code></td>
+          <td>"How are capital gains taxed?" · "What's a Roth IRA?"</td>
+        </tr>
+      </table>
+
+      <h3>Adding a New Category</h3>
+      <p>If you want to add a new topic area (e.g. <code>crypto</code> or <code>options</code>):</p>
+      <ol>
+        <li>Create the folder: <code>src/rag/seed/crypto/</code></li>
+        <li>Add <code>.md</code> files with <code>category: crypto</code> in frontmatter</li>
+        <li>Add <code>"crypto"</code> to the <code>CATEGORIES</code> tuple in <code>src/rag/chroma_store.py</code>:</li>
+      </ol>
+      <pre><code>CATEGORIES = (<span class="str">"investing"</span>, <span class="str">"portfolio"</span>, <span class="str">"tax"</span>, <span class="str">"goals"</span>, <span class="str">"market"</span>, <span class="str">"crypto"</span>)</code></pre>
+      <ol start="4">
+        <li>Re-run ingest: <code>docker compose exec api python -m src.rag.ingest --seed-dir src/rag/seed</code></li>
+        <li>The supervisor will start routing crypto questions to the new category automatically
+            (it reads the category list and uses it in its routing prompt).</li>
+      </ol>
+      <div class="callout callout-tip">
+        You don't need to create a new agent for a new category — existing agents (especially <code>qa</code>)
+        will handle the retrieved context. Create a dedicated agent only if you need specialized tool calls
+        or a very different system prompt.
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ RAG INGEST -->
+    <section class="section" id="rag-ingest">
+      <h2>⚡ Running Ingest</h2>
+
+      <h3>Methods</h3>
+      <table>
+        <tr><th>Method</th><th>Command</th><th>Use When</th></tr>
+        <tr>
+          <td>Via exec (live container)</td>
+          <td><code>docker compose exec api python -m src.rag.ingest --seed-dir src/rag/seed</code></td>
+          <td>Adding new docs to a running instance</td>
+        </tr>
+        <tr>
+          <td>Via profile (one-shot)</td>
+          <td><code>docker compose --profile seed run --rm rag-ingest</code></td>
+          <td>First-time setup or CI/CD</td>
+        </tr>
+        <tr>
+          <td>With clear flag</td>
+          <td><code>… python -m src.rag.ingest --seed-dir src/rag/seed --clear</code></td>
+          <td>Full rebuild — e.g. after renaming files or changing chunk size</td>
+        </tr>
+        <tr>
+          <td>Custom directory</td>
+          <td><code>… --seed-dir /path/to/my/docs</code></td>
+          <td>Ingesting from a different folder</td>
+        </tr>
+      </table>
+
+      <h3>What Ingest Does</h3>
+      <ol>
+        <li>Scans all <code>*.md</code> files recursively under the seed directory</li>
+        <li>Parses YAML frontmatter for <code>source_title</code>, <code>category</code>, <code>source_url</code></li>
+        <li>Splits content into word-count chunks (800 words, 100 overlap)</li>
+        <li>Generates a deterministic SHA256 ID per chunk: <code>sha256("filepath:chunk_idx")[:16]</code></li>
+        <li>Calls <code>collection.upsert()</code> — safe to run multiple times, won't create duplicates</li>
+      </ol>
+
+      <h3>Expected Output</h3>
+      <pre><code>  investing/what-is-investing.md → 2 chunk(s)
+  investing/dollar-cost-averaging.md → 1 chunk(s)
+  ...
+  tax/tax-loss-harvesting.md → 2 chunk(s)
+
+Ingested 30 chunks from src/rag/seed
+Total documents in store: 30</code></pre>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ CHROMA INSPECT -->
+    <section class="section" id="chroma-inspect">
+      <h2>🔍 Inspecting ChromaDB</h2>
+
+      <h3>REST API (no code needed)</h3>
+      <pre><code><span class="comment"># Health check</span>
+curl http://localhost:8001/api/v2/heartbeat
+
+<span class="comment"># List collections</span>
+curl http://localhost:8001/api/v2/tenants/default_tenant/databases/default_database/collections
+
+<span class="comment"># Count documents in finance_kb (need collection ID from above)</span>
+curl "http://localhost:8001/api/v2/tenants/default_tenant/databases/default_database/collections/{id}/count"</code></pre>
+
+      <h3>Python (inside API container)</h3>
+      <pre><code>docker compose exec api python3 - &lt;&lt;'EOF'
+from src.rag.chroma_store import ChromaStore
+s = ChromaStore()
+
+<span class="comment"># Total chunk count</span>
+print("Total chunks:", s.count())
+
+<span class="comment"># Peek at stored metadata</span>
+col = s._col
+result = col.get(limit=5, include=["metadatas"])
+for meta in result["metadatas"]:
+    print(meta["source_title"], "|", meta["category"], "| chunk", meta["chunk_idx"])
+EOF</code></pre>
+
+      <h3>Query Test</h3>
+      <pre><code>docker compose exec api python3 - &lt;&lt;'EOF'
+from src.rag.chroma_store import ChromaStore
+s = ChromaStore()
+
+docs = s.query("how do I reduce capital gains tax", categories=["tax"], k=3)
+for d in docs:
+    print("---")
+    print("Title:", d.metadata["source_title"])
+    print("Preview:", d.content[:150])
+EOF</code></pre>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ CHROMA MANAGE -->
+    <section class="section" id="chroma-manage">
+      <h2>🗄️ Managing ChromaDB Documents</h2>
+
+      <h3>Delete Specific Documents</h3>
+      <pre><code>docker compose exec api python3 - &lt;&lt;'EOF'
+from src.rag.chroma_store import ChromaStore
+s = ChromaStore()
+
+<span class="comment"># Delete all chunks from one category</span>
+s._col.delete(where={"category": "tax"})
+print("After delete:", s.count())
+EOF</code></pre>
+
+      <pre><code>docker compose exec api python3 - &lt;&lt;'EOF'
+from src.rag.chroma_store import ChromaStore
+s = ChromaStore()
+
+<span class="comment"># Delete all chunks from a specific source title</span>
+s._col.delete(where={"source_title": "Capital Gains Tax Explained"})
+EOF</code></pre>
+
+      <h3>Replace a Single Document</h3>
+      <p>Since ingest uses <code>upsert</code> with deterministic IDs, just edit the <code>.md</code> file and re-run ingest —
+        the old chunks for that file will be overwritten automatically (same SHA256 IDs).</p>
+
+      <div class="callout callout-warn">
+        If you <em>rename</em> a file, the old chunks (keyed to the old path) will remain in the store
+        and the new file will add new chunks. Use <code>--clear</code> after renaming to avoid stale data.
+      </div>
+
+      <h3>Full Reset of ChromaDB Only</h3>
+      <pre><code><span class="comment"># Stop ChromaDB, remove its volume, restart, re-ingest</span>
+docker compose stop chroma
+docker volume rm aurum_chroma_data
+docker compose up -d chroma
+docker compose --profile seed run --rm rag-ingest</code></pre>
+
+      <h3>Backup ChromaDB</h3>
+      <pre><code><span class="comment"># Export the named volume to a tar file</span>
+docker run --rm \
+  -v aurum_chroma_data:/data \
+  -v $(pwd):/backup \
+  alpine tar czf /backup/chroma_backup.tar.gz -C /data .
+
+<span class="comment"># Restore</span>
+docker run --rm \
+  -v aurum_chroma_data:/data \
+  -v $(pwd):/backup \
+  alpine tar xzf /backup/chroma_backup.tar.gz -C /data</code></pre>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ API REFERENCE -->
+    <section class="section" id="api">
+      <h2>🔌 API Endpoints</h2>
+
+      <h3>Auth</h3>
+      <div class="endpoint-row"><span class="method method-post">POST</span><span class="endpoint-path">/api/auth/register</span><span class="endpoint-desc">Create account</span></div>
+      <div class="endpoint-row"><span class="method method-post">POST</span><span class="endpoint-path">/api/auth/login</span><span class="endpoint-desc">Get JWT token</span></div>
+      <div class="endpoint-row"><span class="method method-get">GET</span><span class="endpoint-path">/api/auth/me</span><span class="endpoint-desc">Current user + is_admin flag</span></div>
+
+      <h3>Chat</h3>
+      <div class="endpoint-row"><span class="method method-post">POST</span><span class="endpoint-path">/api/chat/conversations</span><span class="endpoint-desc">Create conversation</span></div>
+      <div class="endpoint-row"><span class="method method-get">GET</span><span class="endpoint-path">/api/chat/conversations</span><span class="endpoint-desc">List user's conversations</span></div>
+      <div class="endpoint-row"><span class="method method-get">GET</span><span class="endpoint-path">/api/chat/conversations/{id}/messages</span><span class="endpoint-desc">Get message history</span></div>
+      <div class="endpoint-row"><span class="method method-delete">DEL</span><span class="endpoint-path">/api/chat/conversations/{id}</span><span class="endpoint-desc">Delete conversation + messages</span></div>
+      <div class="endpoint-row"><span class="method method-ws">WS</span><span class="endpoint-path">/api/chat/ws?conversation_id=…&token=…</span><span class="endpoint-desc">Streaming chat</span></div>
+
+      <h3>Portfolio</h3>
+      <div class="endpoint-row"><span class="method method-get">GET</span><span class="endpoint-path">/api/portfolio</span><span class="endpoint-desc">User's portfolios</span></div>
+      <div class="endpoint-row"><span class="method method-post">POST</span><span class="endpoint-path">/api/portfolio</span><span class="endpoint-desc">Create portfolio</span></div>
+      <div class="endpoint-row"><span class="method method-post">POST</span><span class="endpoint-path">/api/portfolio/{id}/holdings</span><span class="endpoint-desc">Add holding</span></div>
+      <div class="endpoint-row"><span class="method method-delete">DEL</span><span class="endpoint-path">/api/portfolio/{id}/holdings/{hid}</span><span class="endpoint-desc">Remove holding</span></div>
+
+      <h3>Market</h3>
+      <div class="endpoint-row"><span class="method method-get">GET</span><span class="endpoint-path">/api/market/quote/{symbol}</span><span class="endpoint-desc">Live stock quote</span></div>
+      <div class="endpoint-row"><span class="method method-get">GET</span><span class="endpoint-path">/api/market/indices</span><span class="endpoint-desc">S&amp;P 500, Nasdaq, Dow, VIX</span></div>
+      <div class="endpoint-row"><span class="method method-get">GET</span><span class="endpoint-path">/api/market/news</span><span class="endpoint-desc">Financial news feed</span></div>
+
+      <h3>Goals</h3>
+      <div class="endpoint-row"><span class="method method-get">GET</span><span class="endpoint-path">/api/goals</span><span class="endpoint-desc">User's goals</span></div>
+      <div class="endpoint-row"><span class="method method-post">POST</span><span class="endpoint-path">/api/goals</span><span class="endpoint-desc">Create goal</span></div>
+      <div class="endpoint-row"><span class="method method-delete">DEL</span><span class="endpoint-path">/api/goals/{id}</span><span class="endpoint-desc">Delete goal</span></div>
+
+      <h3>Admin (requires ADMIN_EMAILS)</h3>
+      <div class="endpoint-row"><span class="method method-get">GET</span><span class="endpoint-path">/api/admin/stats</span><span class="endpoint-desc">Aggregate platform stats</span></div>
+      <div class="endpoint-row"><span class="method method-get">GET</span><span class="endpoint-path">/api/admin/conversations</span><span class="endpoint-desc">All conversations with token totals</span></div>
+      <div class="endpoint-row"><span class="method method-get">GET</span><span class="endpoint-path">/api/admin/conversations/{id}/trace</span><span class="endpoint-desc">Full observability trace</span></div>
+      <div class="endpoint-row"><span class="method method-get">GET</span><span class="endpoint-path">/api/admin/users</span><span class="endpoint-desc">User list with usage stats</span></div>
+
+      <div class="callout callout-tip">
+        Full interactive API docs are available at <a href="http://localhost:8000/docs">http://localhost:8000/docs</a> (Swagger UI) when the API is running.
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ TROUBLESHOOT -->
+    <section class="section" id="troubleshoot">
+      <h2>🔧 Troubleshooting</h2>
+
+      <h3>Chat returns an error immediately</h3>
+      <pre><code>docker compose logs api --tail=30</code></pre>
+      <p>Common causes:</p>
+      <ul>
+        <li>Invalid or missing <code>LLM_API_KEY</code> → check .env and restart API</li>
+        <li>LLM rate limit exceeded → wait and retry</li>
+        <li>ChromaDB unreachable → <code>docker compose ps chroma</code> should show healthy</li>
+      </ul>
+
+      <h3>RAG returns no results</h3>
+      <pre><code><span class="comment"># Check chunk count</span>
+docker compose exec api python -c "from src.rag.chroma_store import ChromaStore; print(ChromaStore().count())"</code></pre>
+      <p>If count is 0, ingest hasn't been run. Run:</p>
+      <pre><code>docker compose --profile seed run --rm rag-ingest</code></pre>
+
+      <h3>Migrations out of date</h3>
+      <pre><code>docker compose exec api alembic upgrade head</code></pre>
+      <p>If you see <code>Table 'chat_traces' doesn't exist</code> or similar, migrations haven't been applied.</p>
+
+      <h3>Admin nav item not showing</h3>
+      <p>Check that your email exactly matches <code>ADMIN_EMAILS</code> in <code>.env</code> (case-insensitive, but no extra spaces).
+        Restart the API after changing the env file.</p>
+
+      <h3>ChromaDB version mismatch</h3>
+      <p>The Python client version must match the server version. The current setup uses
+        <code>chromadb/chroma:latest</code> in docker-compose and the latest Python client.
+        If you see <code>KeyError('_type')</code> on collection create, the versions are mismatched —
+        update <code>docker-compose.yml</code> to <code>chromadb/chroma:latest</code>.</p>
+
+      <h3>Port conflicts</h3>
+      <table>
+        <tr><th>Error</th><th>Fix</th></tr>
+        <tr><td>Port 8000 already in use</td><td>Stop any local uvicorn process: <code>lsof -ti:8000 | xargs kill</code></td></tr>
+        <tr><td>Port 5432 already in use</td><td>Stop local Postgres: <code>brew services stop postgresql</code></td></tr>
+        <tr><td>Port 5173 already in use</td><td>Change UI port in docker-compose.yml: <code>- "5174:5173"</code></td></tr>
+      </table>
+
+      <h3>Useful debug commands</h3>
+      <pre><code><span class="comment"># Check all container health</span>
+docker compose ps
+
+<span class="comment"># Follow all logs</span>
+docker compose logs -f
+
+<span class="comment"># Enter API shell</span>
+docker compose exec api bash
+
+<span class="comment"># Enter Postgres shell</span>
+docker compose exec postgres psql -U aurum -d aurum
+
+<span class="comment"># Check migration status</span>
+docker compose exec api alembic current</code></pre>
+    </section>
+
+    <div style="height:60px"></div>
+  </div>
+</main>
+
+<script>
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-toggle').textContent = isDark ? '🌙 Dark' : '☀️ Light';
+  }
+
+  function scrollTo(id) {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.querySelectorAll('.nav-item').forEach(el => {
+      el.classList.toggle('active', el.getAttribute('onclick') === `scrollTo('${id}')`);
+    });
+  }
+
+  // Highlight active nav on scroll
+  const sections = document.querySelectorAll('.section');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const id = e.target.id;
+        document.querySelectorAll('.nav-item').forEach(el => {
+          el.classList.toggle('active', el.getAttribute('onclick') === `scrollTo('${id}')`);
+        });
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
