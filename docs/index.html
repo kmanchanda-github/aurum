@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aurum — Technical Documentation</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+:root[data-theme="dark"] {
+  --bg: #0d1117; --bg2: #161b22; --bg3: #1f2937; --border: #30363d;
+  --text: #e6edf3; --text2: #8b949e; --accent: #d4a843; --accent2: #f0c060;
+  --link: #58a6ff; --green: #3fb950; --red: #f85149; --code-bg: #1f2937;
+  --tab-active: #d4a843; --tab-inactive: #8b949e; --shadow: rgba(0,0,0,0.4);
+  --pill-bg: #21262d; --card-hover: #1c2128;
+}
+:root[data-theme="light"] {
+  --bg: #f6f8fa; --bg2: #ffffff; --bg3: #f1f5f9; --border: #d0d7de;
+  --text: #24292f; --text2: #656d76; --accent: #b8860b; --accent2: #d4a843;
+  --link: #0969da; --green: #1a7f37; --red: #cf222e; --code-bg: #1f2937;
+  --tab-active: #b8860b; --tab-inactive: #656d76; --shadow: rgba(0,0,0,0.1);
+  --pill-bg: #eaeef2; --card-hover: #f3f4f6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;font-size:15px;transition:background .2s,color .2s}
+a{color:var(--link);text-decoration:none}
+a:hover{text-decoration:underline}
+/* Header */
+header{position:sticky;top:0;z-index:100;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px;box-shadow:0 1px 6px var(--shadow)}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px}
+.logo-dot{width:22px;height:22px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:50%;flex-shrink:0}
+.logo-sub{font-weight:400;color:var(--text2);font-size:13px;margin-left:4px}
+.header-nav{display:flex;align-items:center;gap:20px}
+.header-nav a{font-size:13px;color:var(--text2);padding:4px 8px;border-radius:6px;transition:background .15s,color .15s}
+.header-nav a:hover,.header-nav a.active{background:var(--bg3);color:var(--text);text-decoration:none}
+.theme-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;cursor:pointer;font-size:13px;color:var(--text2);display:flex;align-items:center;gap:5px;transition:all .15s}
+.theme-btn:hover{border-color:var(--accent);color:var(--accent)}
+/* Tabs */
+.tab-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;display:flex;gap:4px;overflow-x:auto}
+.tab-btn{padding:14px 18px;font-size:14px;font-weight:500;color:var(--tab-inactive);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--tab-active);border-bottom-color:var(--tab-active)}
+/* Content */
+.tab-content{display:none;padding:32px 24px;max-width:1100px;margin:0 auto;animation:fadeIn .2s}
+.tab-content.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+/* Typography */
+h2{font-size:22px;font-weight:700;color:var(--text);margin:0 0 8px;border-bottom:1px solid var(--border);padding-bottom:12px}
+h3{font-size:17px;font-weight:600;color:var(--accent);margin:28px 0 12px}
+h4{font-size:15px;font-weight:600;color:var(--text);margin:20px 0 8px}
+p{margin-bottom:12px;color:var(--text)}
+/* Cards */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;transition:border-color .15s}
+.card:hover{border-color:var(--accent)}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:24px}
+.card-sm{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px}
+.card-title{font-weight:600;font-size:14px;color:var(--accent);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+/* Code */
+code{font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:13px;background:var(--code-bg);color:#a5f3fc;padding:1px 5px;border-radius:4px}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:16px;overflow-x:auto;margin:12px 0 20px;font-size:13px;line-height:1.55}
+pre code{background:none;padding:0;color:#e2e8f0}
+.kw{color:#c792ea}.fn{color:#82aaff}.str{color:#c3e88d}.cm{color:#546e7a;font-style:italic}.num{color:#f78c6c}.tp{color:#ffcb6b}
+/* Tables */
+.table-wrap{overflow-x:auto;margin:12px 0 24px;border-radius:8px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+thead{background:var(--bg3)}
+th{padding:10px 14px;text-align:left;font-weight:600;font-size:13px;color:var(--text2);border-bottom:1px solid var(--border)}
+td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--card-hover)}
+/* Badges */
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:12px;font-weight:600}
+.badge-gold{background:rgba(212,168,67,0.15);color:var(--accent)}
+.badge-green{background:rgba(63,185,80,0.15);color:var(--green)}
+.badge-blue{background:rgba(88,166,255,0.15);color:#58a6ff}
+.badge-red{background:rgba(248,81,73,0.15);color:var(--red)}
+.badge-gray{background:var(--pill-bg);color:var(--text2)}
+/* Lists */
+ul,ol{padding-left:20px;margin-bottom:12px}
+li{margin-bottom:4px;color:var(--text)}
+/* Frame examples */
+.frame-block{background:var(--bg3);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;padding:12px 16px;margin:8px 0;font-size:13px;font-family:"SF Mono","Fira Code",Consolas,monospace;color:#c3e88d;overflow-x:auto}
+/* Directory tree */
+.tree{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:16px;font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:13px;line-height:1.7;overflow-x:auto}
+.tree .dir{color:#82aaff}.tree .file{color:#c3e88d}.tree .comment{color:#546e7a}
+/* Section header */
+.section-header{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.section-num{width:28px;height:28px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#000;flex-shrink:0}
+/* Mermaid */
+.mermaid{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:20px;margin:12px 0 24px;overflow-x:auto;display:flex;justify-content:center}
+/* Two-col */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+@media(max-width:680px){.two-col{grid-template-columns:1fr}}
+/* WS frames */
+.ws-frames{display:grid;gap:8px;margin:12px 0 20px}
+.ws-frame{border-radius:6px;padding:10px 14px;font-size:13px;font-family:"SF Mono","Fira Code",Consolas,monospace}
+.ws-frame.in{background:rgba(63,185,80,0.08);border:1px solid rgba(63,185,80,0.3)}
+.ws-frame.out{background:rgba(88,166,255,0.08);border:1px solid rgba(88,166,255,0.2)}
+/* Test section */
+.test-file{background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:16px;overflow:hidden}
+.test-file-header{background:var(--bg3);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.test-file-name{font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:13px;color:var(--accent);font-weight:600}
+.test-count{font-size:12px;color:var(--text2)}
+.test-list{padding:12px 16px}
+.test-item{padding:5px 0;display:flex;align-items:flex-start;gap:8px;font-size:13px;border-bottom:1px solid var(--border)}
+.test-item:last-child{border-bottom:none}
+.test-check{color:var(--green);flex-shrink:0;margin-top:1px}
+/* Footer */
+footer{margin-top:60px;padding:28px 24px;border-top:1px solid var(--border);background:var(--bg2);text-align:center;font-size:12px;color:var(--text2)}
+footer strong{color:var(--accent)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    Aurum
+    <span class="logo-sub">Technical Documentation</span>
+  </div>
+  <div class="header-nav">
+    <a href="index.html" class="active">Docs</a>
+    <a href="plan.html">Project Plan</a>
+    <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">☀️ Light</button>
+  </div>
+</header>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="showTab('arch',this)">Architecture</button>
+  <button class="tab-btn" onclick="showTab('design',this)">Design</button>
+  <button class="tab-btn" onclick="showTab('stack',this)">Tech Stack</button>
+  <button class="tab-btn" onclick="showTab('impl',this)">Implementation</button>
+  <button class="tab-btn" onclick="showTab('testing',this)">Testing</button>
+</div>
+
+<!-- ═══════════════════ ARCHITECTURE ═══════════════════ -->
+<div id="tab-arch" class="tab-content active">
+  <div class="section-header"><div class="section-num">1</div><h2>System Architecture</h2></div>
+
+  <h3>End-to-End System Overview</h3>
+  <div class="mermaid">
+flowchart TD
+    U["🌐 User Browser\nReact + Vite SPA"] -->|"REST + WebSocket"| GW
+
+    subgraph GW["FastAPI Gateway (async uvicorn)"]
+        MW["Auth/JWT · Rate Limit · Request-ID"]
+        R["Routes: auth · chat · portfolio\nmarket · goals · news · tax · health"]
+    end
+
+    GW -->|"astream_events"| LG
+
+    subgraph LG["LangGraph StateGraph"]
+        S["supervisor_route\n(LLM routing decision)"] --> RAG["retrieve_rag\n(ChromaDB query)"]
+        RAG -->|"parallel Send fanout"| A1["qa_agent"]
+        RAG --> A2["portfolio_agent"]
+        RAG --> A3["market_agent"]
+        RAG --> A4["goals_agent"]
+        RAG --> A5["news_agent"]
+        RAG --> A6["tax_agent"]
+        A1 & A2 & A3 & A4 & A5 & A6 --> SY["synthesizer\n(if multi-agent)"]
+        SY --> PT["persist_turn"]
+    end
+
+    LG <--> DB["PostgreSQL\nusers · conversations\nportfolios · goals"]
+    LG <--> CH["ChromaDB\n21 articles · cosine similarity\n5 RAG categories"]
+    LG <--> AR
+
+    subgraph AR["AdapterRegistry (Redis-cached)"]
+        YF["YFinanceAdapter\n(primary, no key)"]
+        AV["AlphaVantageAdapter\n(fallback, optional key)"]
+        GN["PyGoogleNewsAdapter\n(RSS)"]
+    end
+
+    AR <--> RC["Redis\nQuote 60s · History 300s\nIndex 1h · News 15m"]
+  </div>
+
+  <h3>Component Layers</h3>
+  <div class="card-grid">
+    <div class="card-sm">
+      <div class="card-title">🖥️ Presentation Layer</div>
+      <ul>
+        <li>React 18 + Vite + TypeScript SPA</li>
+        <li>6 pages: Chat, Portfolio, Market, Goals, News, Settings</li>
+        <li><code>useChat</code> hook — WS lifecycle + exponential backoff reconnect</li>
+        <li>Recharts: AllocationPie, PerformanceChart, MonteCarloChart</li>
+        <li>TanStack Query for REST data fetching + caching</li>
+      </ul>
+    </div>
+    <div class="card-sm">
+      <div class="card-title">⚡ API Gateway Layer</div>
+      <ul>
+        <li>FastAPI async (uvicorn) — 4 workers in production</li>
+        <li>JWT Bearer auth via <code>get_current_user</code> dependency</li>
+        <li>slowapi rate limiting on auth endpoints</li>
+        <li><code>RequestIdMiddleware</code> — <code>X-Request-ID</code> header</li>
+        <li>WebSocket <code>ConnectionManager</code> per conversation</li>
+      </ul>
+    </div>
+    <div class="card-sm">
+      <div class="card-title">🤖 Agent Orchestration Layer</div>
+      <ul>
+        <li>LangGraph <code>StateGraph</code> with MemorySaver checkpointer</li>
+        <li>Supervisor pattern — LLM routes to 1–3 agents</li>
+        <li>Parallel <code>Send</code> fanout for multi-agent queries</li>
+        <li><code>Annotated[list, add]</code> reducer on <code>agent_results</code></li>
+        <li><code>astream_events</code> for real-time token streaming to WS</li>
+      </ul>
+    </div>
+    <div class="card-sm">
+      <div class="card-title">🔌 Adapter Layer</div>
+      <ul>
+        <li>Abstract base classes: <code>MarketDataAdapter</code>, <code>NewsAdapter</code></li>
+        <li><code>AdapterRegistry</code> — priority-sorted, Redis-cached</li>
+        <li>Automatic fallthrough on adapter failure</li>
+        <li>YFinance (primary) → AlphaVantage (fallback)</li>
+        <li>Per-user adapter priority via <code>user_settings</code></li>
+      </ul>
+    </div>
+    <div class="card-sm">
+      <div class="card-title">🗄️ Data Layer</div>
+      <ul>
+        <li>PostgreSQL 16 — async SQLAlchemy + Alembic migrations</li>
+        <li>ChromaDB — cosine similarity, category metadata filtering</li>
+        <li>Redis 7 — 4-tier TTL: 60s quotes, 300s history, 1h indices, 15m news</li>
+        <li>SQLite fallback (<code>USE_SQLITE=true</code>) for HF Spaces</li>
+        <li><code>cachetools.TTLCache</code> fallback (no Redis needed on HF)</li>
+      </ul>
+    </div>
+    <div class="card-sm">
+      <div class="card-title">🚀 Deployment Layer</div>
+      <ul>
+        <li>Docker Compose (local dev) — 6 services</li>
+        <li>docker-compose.prod.yml — nginx + 4 uvicorn workers</li>
+        <li>Dockerfile.hf — single container for Hugging Face Spaces</li>
+        <li>React build served as StaticFiles in production/HF</li>
+        <li>GitHub Pages for documentation</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>LangGraph Graph Flow</h3>
+  <div class="mermaid">
+flowchart LR
+    ST(["START"]) --> SR["supervisor_route\nLLM → JSON routing decision"]
+    SR --> RR["retrieve_rag\nChromaDB category query"]
+    RR -->|"confidence < 0.6"| CL["clarify_node\nAsk for clarification"]
+    RR -->|"Send fanout"| QA["qa_agent"]
+    RR --> PA["portfolio_agent"]
+    RR --> MA["market_agent"]
+    RR --> GA["goals_agent"]
+    RR --> NA["news_agent"]
+    RR --> TA["tax_agent"]
+    QA & PA & MA & GA & NA & TA -->|"multi-agent"| SY["synthesizer\nMerge + dedupe citations\n+ disclaimer"]
+    QA & PA & MA & GA & NA & TA -->|"single agent"| PT
+    SY --> PT["persist_turn\nSave message to DB"]
+    PT --> EN(["END"])
+    CL --> EN
+  </div>
+
+  <h3>Docker Service Topology</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Service</th><th>Image</th><th>Port</th><th>Profile</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td><code>postgres</code></td><td>postgres:16-alpine</td><td>5432</td><td>always</td><td>Primary relational database</td></tr>
+        <tr><td><code>redis</code></td><td>redis:7-alpine</td><td>6379</td><td>always</td><td>Distributed TTL cache</td></tr>
+        <tr><td><code>chroma</code></td><td>chromadb/chroma:0.5.20</td><td>8000</td><td>always</td><td>Vector store for RAG</td></tr>
+        <tr><td><code>api</code></td><td>./Dockerfile</td><td>8000</td><td>always</td><td>FastAPI backend, depends on all above</td></tr>
+        <tr><td><code>ui</code></td><td>./ui/Dockerfile.dev</td><td>5173</td><td>dev only</td><td>Vite dev server with /api proxy</td></tr>
+        <tr><td><code>rag-ingest</code></td><td>./Dockerfile</td><td>—</td><td>seed</td><td>One-shot: ingest 21 seed articles</td></tr>
+        <tr><td><code>nginx</code></td><td>nginx:alpine</td><td>80</td><td>prod only</td><td>Reverse proxy + React SPA serving</td></tr>
+        <tr><td><code>ui-builder</code></td><td>node:20-alpine</td><td>—</td><td>build</td><td>Builds React app into shared volume</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════ DESIGN ═══════════════════ -->
+<div id="tab-design" class="tab-content">
+  <div class="section-header"><div class="section-num">2</div><h2>System Design</h2></div>
+
+  <h3>Six Specialist Agents</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Agent</th><th>Triggered By</th><th>RAG Categories</th><th>Data Sources</th><th>Key Capability</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge badge-blue">qa</span></td><td>explaining, what is, how does, education</td><td>investing, portfolio</td><td>ChromaDB RAG</td><td>General financial education grounded in knowledge base</td></tr>
+        <tr><td><span class="badge badge-gold">portfolio</span></td><td>my portfolio, holdings, allocation, P&amp;L</td><td>portfolio</td><td>PostgreSQL holdings</td><td>Analyzes user's actual positions, cost basis, performance</td></tr>
+        <tr><td><span class="badge badge-green">market</span></td><td>price, AAPL, stock, index, S&amp;P, market</td><td>market</td><td>yfinance via registry</td><td>Real-time quotes, price history, indices, market movers</td></tr>
+        <tr><td><span class="badge badge-gold">goals</span></td><td>retirement, saving for, target, 401k</td><td>goals</td><td>PostgreSQL goals</td><td>Goal progress, Monte Carlo projections, timeline analysis</td></tr>
+        <tr><td><span class="badge badge-blue">news</span></td><td>news, latest, today, headline, what happened</td><td>market</td><td>PyGoogleNews RSS</td><td>Financial news with topic filtering and recency ranking</td></tr>
+        <tr><td><span class="badge badge-red">tax</span></td><td>capital gains, IRA, 401k, HSA, tax strategy</td><td>tax</td><td>ChromaDB RAG</td><td>Tax education, account types — strictly educational (no advice)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>LangGraph State Schema</h3>
+  <p>All graph nodes read from and write to a single shared <code>FinanceStateDict</code>. The <code>agent_results</code> field uses an <code>add</code> reducer so parallel agents safely append without overwriting each other.</p>
+  <pre><code><span class="kw">class</span> <span class="tp">FinanceStateDict</span>(TypedDict, total=<span class="kw">False</span>):
+    <span class="cm"># Conversation history — LangChain add_messages reducer</span>
+    messages:          Annotated[list[<span class="tp">BaseMessage</span>], add_messages]
+    user_id:           str
+    conversation_id:   str
+
+    <span class="cm"># Routing — set by supervisor_route node</span>
+    intent:            str | <span class="kw">None</span>           <span class="cm"># "user wants stock price"</span>
+    selected_agents:   list[str]             <span class="cm"># ["market", "portfolio"]</span>
+    rag_categories:    list[str]             <span class="cm"># ["market", "portfolio"]</span>
+    routing_reason:    str | <span class="kw">None</span>
+    needs_followup:    bool                  <span class="cm"># True if confidence &lt; 0.6</span>
+
+    <span class="cm"># Data — filled during execution</span>
+    retrieved_docs:    list[dict]            <span class="cm"># RAG chunks from ChromaDB</span>
+    tool_outputs:      dict[str, <span class="tp">Any</span>]       <span class="cm"># arbitrary tool call results</span>
+    agent_results:     Annotated[list[dict], add]  <span class="cm"># parallel-safe</span>
+
+    <span class="cm"># Output — filled by synthesizer or persist_turn</span>
+    final_response:    str | <span class="kw">None</span>
+    final_citations:   list[dict]
+    error:             str | <span class="kw">None</span>
+</code></pre>
+
+  <h3>WebSocket Streaming Protocol</h3>
+  <p>The gateway streams typed JSON frames over a WebSocket connection at <code>/api/chat/ws?conversation_id=&lt;id&gt;&amp;token=&lt;jwt&gt;</code>.</p>
+  <div class="ws-frames">
+    <div class="ws-frame in"><strong style="color:#82aaff">agent_start</strong> — emitted when a specialist agent begins processing<br><code>{"type": "agent_start", "agent": "portfolio"}</code></div>
+    <div class="ws-frame in"><strong style="color:#82aaff">token</strong> — streaming token chunk from the LLM<br><code>{"type": "token", "delta": "Your portfolio consists of..."}</code></div>
+    <div class="ws-frame in"><strong style="color:#82aaff">agent_end</strong> — emitted when an agent finishes<br><code>{"type": "agent_end", "agent": "portfolio"}</code></div>
+    <div class="ws-frame in"><strong style="color:#82aaff">citation</strong> — RAG source reference<br><code>{"type": "citation", "source_title": "Diversification Guide", "source_url": "...", "snippet": "..."}</code></div>
+    <div class="ws-frame in"><strong style="color:#3fb950">final</strong> — complete response with all metadata<br><code>{"type": "final", "message_id": "uuid", "content": "...", "agents_used": ["portfolio","market"], "citations": [...]}</code></div>
+    <div class="ws-frame out"><strong style="color:#f85149">error</strong> — if graph execution fails<br><code>{"type": "error", "message": "LLM timeout"}</code></div>
+  </div>
+
+  <h4>Reconnect Strategy (client-side)</h4>
+  <pre><code><span class="cm">// Exponential backoff: 1s → 2s → 4s → ... → 30s max, 8 attempts</span>
+<span class="kw">const</span> BASE_MS = <span class="num">1000</span>;
+<span class="kw">const</span> MAX_MS  = <span class="num">30000</span>;
+<span class="kw">const</span> MAX_ATT = <span class="num">8</span>;
+
+ws.onclose = (ev) => {
+  <span class="kw">if</span> (ev.code !== <span class="num">1000</span> &amp;&amp; attempts &lt; MAX_ATT) {
+    <span class="kw">const</span> delay = Math.<span class="fn">min</span>(BASE_MS * <span class="num">2</span> ** attempts, MAX_MS);
+    attempts++;
+    reconnectTimer = <span class="fn">setTimeout</span>(connect, delay);
+  }
+};
+<span class="cm">// Clean close on component unmount — code 1000 prevents reconnect</span>
+ws.<span class="fn">close</span>(<span class="num">1000</span>, <span class="str">"component unmounted"</span>);
+</code></pre>
+
+  <h3>Pluggable Adapter Pattern</h3>
+  <div class="two-col">
+    <div>
+      <h4>Abstract Base Class</h4>
+      <pre><code><span class="kw">class</span> <span class="tp">MarketDataAdapter</span>(ABC):
+    name: str
+    capabilities: set[str]
+
+    <span class="kw">async def</span> <span class="fn">get_quote</span>(self, symbol) -> <span class="tp">Quote</span>: ...
+    <span class="kw">async def</span> <span class="fn">get_history</span>(self, symbol,
+                         period, interval) -> list[<span class="tp">Bar</span>]: ...
+    <span class="kw">async def</span> <span class="fn">get_index</span>(self, symbol) -> <span class="tp">Quote</span>: ...
+    <span class="kw">async def</span> <span class="fn">search_symbols</span>(self, query): ...
+    <span class="kw">async def</span> <span class="fn">health_check</span>(self) -> bool: ...
+
+<span class="kw">class</span> <span class="tp">NewsAdapter</span>(ABC):
+    name: str
+    <span class="kw">async def</span> <span class="fn">fetch</span>(self, query,
+                    since=<span class="kw">None</span>, limit=<span class="num">10</span>
+                    ) -> list[<span class="tp">NewsItem</span>]: ...
+</code></pre>
+    </div>
+    <div>
+      <h4>Registry Priority Fallthrough</h4>
+      <pre><code><span class="kw">async def</span> <span class="fn">get_quote</span>(self, symbol):
+    <span class="cm"># 1. Check Redis cache first</span>
+    cached = <span class="kw">await</span> self._cache.<span class="fn">get</span>(key)
+    <span class="kw">if</span> cached: <span class="kw">return</span> Quote.<span class="fn">model_validate_json</span>(cached)
+
+    <span class="cm"># 2. Try adapters in priority order</span>
+    <span class="kw">for</span> name <span class="kw">in</span> self._market_priority:
+        <span class="kw">try</span>:
+            quote = <span class="kw">await</span> self._market[name].<span class="fn">get_quote</span>(symbol)
+            <span class="kw">await</span> self._cache.<span class="fn">set</span>(key, quote.<span class="fn">model_dump_json</span>(), ex=<span class="num">60</span>)
+            <span class="kw">return</span> quote
+        <span class="kw">except</span> <span class="tp">Exception</span>:
+            <span class="fn">log_warning</span>(<span class="str">"adapter failed, trying next"</span>)
+
+    <span class="kw">raise</span> <span class="tp">NoAdapterAvailable</span>(symbol)
+</code></pre>
+    </div>
+  </div>
+
+  <h3>Database Schema</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Table</th><th>Key Columns</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>users</code></td><td>id (UUID PK), email (unique), password_hash, full_name, risk_tolerance, knowledge_level</td><td>bcrypt hashed passwords; risk_tolerance: conservative/moderate/aggressive</td></tr>
+        <tr><td><code>user_settings</code></td><td>user_id (FK), market_adapter_priority (JSONB), news_adapter_priority (JSONB), watchlist (JSONB)</td><td>Per-user adapter priority overrides</td></tr>
+        <tr><td><code>conversations</code></td><td>id (UUID PK), user_id (FK), title, created_at, updated_at</td><td>LangGraph thread_id = conversation.id</td></tr>
+        <tr><td><code>messages</code></td><td>id, conversation_id (FK), role (user/assistant), content, agents_used (JSONB), citations (JSONB), created_at</td><td>agents_used and citations stored as JSONB arrays</td></tr>
+        <tr><td><code>portfolios</code></td><td>id (UUID PK), user_id (FK), name, created_at</td><td>Users can have multiple portfolios</td></tr>
+        <tr><td><code>holdings</code></td><td>id, portfolio_id (FK), symbol, quantity (Decimal), cost_basis (Decimal), asset_class, purchase_date</td><td>Decimal precision for financial accuracy</td></tr>
+        <tr><td><code>goals</code></td><td>id, user_id (FK), name, target_amount, current_amount, monthly_contribution, target_date, risk_tolerance, priority</td><td>Monte Carlo projection endpoint uses these fields</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>REST API Surface</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge badge-green">POST</span></td><td><code>/api/auth/register</code></td><td>—</td><td>Register user, returns JWT (10/min rate limit)</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td><code>/api/auth/login</code></td><td>—</td><td>Authenticate, returns JWT (20/min rate limit)</td></tr>
+        <tr><td><span class="badge badge-blue">GET</span></td><td><code>/api/auth/me</code></td><td>✓</td><td>Current user profile</td></tr>
+        <tr><td><span class="badge badge-gold">WS</span></td><td><code>/api/chat/ws</code></td><td>token param</td><td>Streaming chat via WebSocket</td></tr>
+        <tr><td><span class="badge badge-blue">GET</span></td><td><code>/api/chat/conversations</code></td><td>✓</td><td>List conversations</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td><code>/api/portfolio</code></td><td>✓</td><td>Create portfolio</td></tr>
+        <tr><td><span class="badge badge-blue">GET</span></td><td><code>/api/portfolio/{id}</code></td><td>✓</td><td>Portfolio detail with holdings + P&amp;L</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td><code>/api/portfolio/{id}/holdings</code></td><td>✓</td><td>Add holding</td></tr>
+        <tr><td><span class="badge badge-blue">GET</span></td><td><code>/api/market/quote/{symbol}</code></td><td>✓</td><td>Real-time quote via registry</td></tr>
+        <tr><td><span class="badge badge-blue">GET</span></td><td><code>/api/market/history/{symbol}</code></td><td>✓</td><td>Price history (period, interval)</td></tr>
+        <tr><td><span class="badge badge-blue">GET</span></td><td><code>/api/market/indices</code></td><td>✓</td><td>S&amp;P 500, Nasdaq, Dow, VIX</td></tr>
+        <tr><td><span class="badge badge-green">POST</span></td><td><code>/api/goals/{id}/projection</code></td><td>✓</td><td>Monte Carlo: 1000 sims, p10/p50/p90</td></tr>
+        <tr><td><span class="badge badge-blue">GET</span></td><td><code>/api/news</code></td><td>✓</td><td>Financial news (query, limit)</td></tr>
+        <tr><td><span class="badge badge-blue">GET</span></td><td><code>/api/tax/topics</code></td><td>✓</td><td>List tax education topics</td></tr>
+        <tr><td><span class="badge badge-blue">GET</span></td><td><code>/healthz</code></td><td>—</td><td>Health check (adapters + DB status)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════ TECH STACK ═══════════════════ -->
+<div id="tab-stack" class="tab-content">
+  <div class="section-header"><div class="section-num">3</div><h2>Technology Stack</h2></div>
+
+  <h3>Backend</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Technology</th><th>Version</th><th>Purpose</th><th>Why Chosen</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Python</strong></td><td>3.12</td><td>Runtime</td><td>Latest stable; richest LLM/ML ecosystem; async-native</td></tr>
+        <tr><td><strong>FastAPI</strong></td><td>0.115</td><td>Web framework</td><td>Async-first; auto OpenAPI docs; native WebSocket; Pydantic integration</td></tr>
+        <tr><td><strong>LangGraph</strong></td><td>0.2.50</td><td>Agent orchestration</td><td>Supervisor + parallel Send fanout; MemorySaver checkpointing; <code>astream_events</code></td></tr>
+        <tr><td><strong>LangChain</strong></td><td>0.3.9</td><td>LLM abstraction</td><td>Multi-provider support; structured output; message types</td></tr>
+        <tr><td><strong>SQLAlchemy</strong></td><td>2.0</td><td>ORM</td><td>Async-native with asyncpg; Alembic migration support</td></tr>
+        <tr><td><strong>Pydantic v2</strong></td><td>2.9</td><td>Validation</td><td>Fast (Rust core); auto OpenAPI schema generation; settings management</td></tr>
+        <tr><td><strong>ChromaDB</strong></td><td>0.5.20</td><td>Vector store</td><td>Embedded or HTTP client; cosine similarity; metadata category filtering</td></tr>
+        <tr><td><strong>sentence-transformers</strong></td><td>3.3</td><td>Embeddings</td><td>Local inference (all-MiniLM-L6-v2); no API key required</td></tr>
+        <tr><td><strong>yfinance</strong></td><td>0.2.50</td><td>Market data</td><td>Free Yahoo/Google Finance data; no API key; covers stocks, ETFs, indices</td></tr>
+        <tr><td><strong>Redis (aioredis)</strong></td><td>5.2</td><td>Cache</td><td>4-tier TTL caching per data freshness needs; fast eviction</td></tr>
+        <tr><td><strong>asyncpg</strong></td><td>0.30</td><td>PostgreSQL driver</td><td>Native async; higher throughput than psycopg2 async wrapper</td></tr>
+        <tr><td><strong>aiosqlite</strong></td><td>0.20</td><td>SQLite async driver</td><td>Zero-config fallback for HF Spaces (<code>USE_SQLITE=true</code>)</td></tr>
+        <tr><td><strong>slowapi</strong></td><td>0.1.9</td><td>Rate limiting</td><td>Starlette middleware; per-endpoint limits with decorator syntax</td></tr>
+        <tr><td><strong>python-jose</strong></td><td>3.3</td><td>JWT auth</td><td>Industry standard; bcrypt password hashing via passlib</td></tr>
+        <tr><td><strong>structlog</strong></td><td>24.4</td><td>Logging</td><td>Structured JSON in production; colorful console in debug mode</td></tr>
+        <tr><td><strong>cachetools</strong></td><td>5.5</td><td>In-memory cache</td><td>TTLCache fallback when Redis unavailable (HF Spaces)</td></tr>
+        <tr><td><strong>numpy</strong></td><td>2.1</td><td>Monte Carlo</td><td>Vectorized 1000-run Monte Carlo simulations for goal projections</td></tr>
+        <tr><td><strong>pygooglenews</strong></td><td>0.1.2</td><td>News adapter</td><td>Google News RSS feed; no API key; feedparser fallback</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Frontend</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Technology</th><th>Version</th><th>Purpose</th><th>Why Chosen</th></tr></thead>
+      <tbody>
+        <tr><td><strong>React</strong></td><td>18</td><td>UI framework</td><td>Concurrent mode; hooks for WebSocket state management; vast ecosystem</td></tr>
+        <tr><td><strong>Vite</strong></td><td>5</td><td>Build tool</td><td>Sub-second HMR; native ESM; fast TypeScript compilation; dev proxy</td></tr>
+        <tr><td><strong>TypeScript</strong></td><td>5</td><td>Type safety</td><td>Catches API shape errors at compile time; better IDE support</td></tr>
+        <tr><td><strong>Tailwind CSS</strong></td><td>3</td><td>Styling</td><td>Utility-first; consistent design tokens; JIT compilation</td></tr>
+        <tr><td><strong>shadcn/ui</strong></td><td>latest</td><td>Component library</td><td>Radix UI primitives; fully accessible; copy-paste ownership</td></tr>
+        <tr><td><strong>TanStack Query</strong></td><td>5</td><td>Data fetching</td><td>Smart caching; background refresh; optimistic updates; deduplication</td></tr>
+        <tr><td><strong>Recharts</strong></td><td>2</td><td>Data visualization</td><td>React-native; composable; AllocationPie, PerformanceChart, MonteCarloAreaChart</td></tr>
+        <tr><td><strong>React Router</strong></td><td>6</td><td>Client routing</td><td>Nested routes; declarative navigation; route guards</td></tr>
+        <tr><td><strong>axios</strong></td><td>1</td><td>HTTP client</td><td>Request/response interceptors for JWT injection and 401 redirect</td></tr>
+        <tr><td><strong>react-markdown</strong></td><td>9</td><td>Markdown rendering</td><td>Renders LLM responses with proper formatting</td></tr>
+        <tr><td><strong>Lucide React</strong></td><td>latest</td><td>Icons</td><td>Consistent icon set; tree-shakeable</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>LLM Providers (Fully Configurable)</h3>
+  <p>Set <code>LLM_PROVIDER</code> and <code>LLM_MODEL</code> in <code>.env</code>. Only the chosen provider's package is installed.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Provider</th><th>LLM_PROVIDER</th><th>Example Model</th><th>Required Key</th><th>Install</th></tr></thead>
+      <tbody>
+        <tr><td>Anthropic</td><td><code>anthropic</code></td><td><code>claude-opus-4-7</code></td><td>ANTHROPIC_API_KEY</td><td><code>uv pip install -e ".[anthropic]"</code></td></tr>
+        <tr><td>OpenAI</td><td><code>openai</code></td><td><code>gpt-4o</code></td><td>OPENAI_API_KEY</td><td><code>uv pip install -e ".[openai]"</code></td></tr>
+        <tr><td>Google</td><td><code>google</code></td><td><code>gemini-2.0-flash</code></td><td>GOOGLE_API_KEY</td><td><code>uv pip install -e ".[google]"</code></td></tr>
+        <tr><td>AWS Bedrock</td><td><code>bedrock</code></td><td><code>anthropic.claude-opus-4-7-...</code></td><td>AWS_ACCESS_KEY_ID + SECRET</td><td><code>uv pip install -e ".[bedrock]"</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Infrastructure</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Technology</th><th>Version</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Docker + Compose</strong></td><td>latest</td><td>Local dev and production orchestration</td></tr>
+        <tr><td><strong>PostgreSQL</strong></td><td>16-alpine</td><td>Primary relational database (users, portfolios, goals, messages)</td></tr>
+        <tr><td><strong>Redis</strong></td><td>7-alpine</td><td>Distributed cache with 4 TTL tiers</td></tr>
+        <tr><td><strong>Nginx</strong></td><td>alpine</td><td>Production reverse proxy + WebSocket upgrade + React SPA serving</td></tr>
+        <tr><td><strong>Hugging Face Spaces</strong></td><td>—</td><td>Zero-cost cloud deployment via Docker container (port 7860)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Testing Stack</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Technology</th><th>Version</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><strong>pytest</strong></td><td>8.3</td><td>Test runner and assertion framework</td></tr>
+        <tr><td><strong>pytest-asyncio</strong></td><td>0.24</td><td>Automatic async test coroutine handling (<code>asyncio_mode = "auto"</code>)</td></tr>
+        <tr><td><strong>pytest-cov</strong></td><td>6.0</td><td>Coverage reporting with term-missing output</td></tr>
+        <tr><td><strong>httpx</strong></td><td>0.28</td><td>Async HTTP client; also powers FastAPI TestClient internally</td></tr>
+        <tr><td><strong>unittest.mock</strong></td><td>stdlib</td><td>AsyncMock for LLM calls, adapter methods; patch for settings</td></tr>
+        <tr><td><strong>FastAPI TestClient</strong></td><td>—</td><td>Integration tests with full lifespan (SQLite + in-memory cache)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════ IMPLEMENTATION ═══════════════════ -->
+<div id="tab-impl" class="tab-content">
+  <div class="section-header"><div class="section-num">4</div><h2>Implementation</h2></div>
+
+  <h3>Directory Structure</h3>
+  <div class="tree">
+<span class="dir">aurum/</span>
+├── <span class="file">Dockerfile</span>               <span class="comment"># Python 3.12-slim multi-stage build</span>
+├── <span class="file">Dockerfile.hf</span>            <span class="comment"># Single-container for HF Spaces (node + python)</span>
+├── <span class="file">docker-compose.yml</span>       <span class="comment"># Local dev: postgres, redis, chroma, api, ui</span>
+├── <span class="file">docker-compose.prod.yml</span>  <span class="comment"># Production: adds nginx, 4 uvicorn workers</span>
+├── <span class="file">nginx.conf</span>               <span class="comment"># Reverse proxy + WebSocket upgrade + SPA fallback</span>
+├── <span class="file">config.yaml</span>              <span class="comment"># YAML config: adapters, RAG, guardrails, indices</span>
+├── <span class="file">pyproject.toml</span>           <span class="comment"># Dependencies + optional extras [anthropic|openai|google|bedrock|dev]</span>
+├── <span class="file">alembic.ini</span>              <span class="comment"># DB migration config</span>
+├── <span class="dir">alembic/versions/</span>        <span class="comment"># Migration scripts</span>
+├── <span class="dir">scripts/</span>
+│   └── <span class="file">seed_demo_data.py</span>    <span class="comment"># Creates demo user + portfolio + 2 goals</span>
+├── <span class="dir">src/</span>
+│   ├── <span class="dir">api/</span>
+│   │   ├── <span class="file">main.py</span>          <span class="comment"># FastAPI app, lifespan, middleware, route mounting</span>
+│   │   ├── <span class="file">deps.py</span>          <span class="comment"># get_current_user() JWT dependency</span>
+│   │   ├── <span class="file">ws.py</span>            <span class="comment"># ConnectionManager + stream_graph_to_ws()</span>
+│   │   ├── <span class="file">limiter.py</span>       <span class="comment"># slowapi Limiter singleton (avoids circular import)</span>
+│   │   └── <span class="dir">routes/</span>
+│   │       ├── <span class="file">auth.py</span>      <span class="comment"># register, login, me  (rate-limited)</span>
+│   │       ├── <span class="file">chat.py</span>      <span class="comment"># WS endpoint + conversation CRUD</span>
+│   │       ├── <span class="file">portfolio.py</span> <span class="comment"># Portfolio + holdings CRUD</span>
+│   │       ├── <span class="file">market.py</span>    <span class="comment"># quote, history, indices, search</span>
+│   │       ├── <span class="file">goals.py</span>     <span class="comment"># Goal CRUD + Monte Carlo projection</span>
+│   │       ├── <span class="file">news.py</span>      <span class="comment"># News feed via registry</span>
+│   │       ├── <span class="file">tax.py</span>       <span class="comment"># Tax topics + explain</span>
+│   │       ├── <span class="file">settings.py</span>  <span class="comment"># Adapter priority + health</span>
+│   │       └── <span class="file">health.py</span>    <span class="comment"># /healthz</span>
+│   ├── <span class="dir">agents/</span>
+│   │   ├── <span class="file">state.py</span>         <span class="comment"># FinanceStateDict TypedDict + AgentResult</span>
+│   │   ├── <span class="file">graph.py</span>         <span class="comment"># build_graph(), _fanout_to_agents(), _inject()</span>
+│   │   ├── <span class="file">supervisor.py</span>    <span class="comment"># LLM routing decision → JSON → selected_agents</span>
+│   │   ├── <span class="file">rag.py</span>           <span class="comment"># retrieve_rag node + format_rag_context()</span>
+│   │   ├── <span class="file">qa_agent.py</span>      <span class="comment"># General education + RAG grounding</span>
+│   │   ├── <span class="file">portfolio_agent.py</span><span class="comment"># Analyzes user's holdings</span>
+│   │   ├── <span class="file">market_agent.py</span>  <span class="comment"># Real-time market data</span>
+│   │   ├── <span class="file">goals_agent.py</span>   <span class="comment"># Goal progress + projections</span>
+│   │   ├── <span class="file">news_agent.py</span>    <span class="comment"># Financial news</span>
+│   │   ├── <span class="file">tax_agent.py</span>     <span class="comment"># Tax education (strictly non-advice)</span>
+│   │   ├── <span class="file">synthesizer.py</span>   <span class="comment"># Merge multi-agent results + disclaimer</span>
+│   │   ├── <span class="file">persistence.py</span>   <span class="comment"># Save turn to PostgreSQL</span>
+│   │   └── <span class="dir">prompts/</span>         <span class="comment"># .txt system prompts: supervisor, qa, portfolio,</span>
+│   │                          <span class="comment"># market, goals, news, tax, synthesizer</span>
+│   ├── <span class="dir">adapters/</span>
+│   │   ├── <span class="file">base.py</span>          <span class="comment"># Abstract MarketDataAdapter, NewsAdapter; Quote, Bar, NewsItem</span>
+│   │   ├── <span class="file">registry.py</span>      <span class="comment"># AdapterRegistry + build_registry() factory</span>
+│   │   ├── <span class="dir">market/</span>          <span class="comment"># yfinance_adapter.py, alpha_vantage_adapter.py</span>
+│   │   └── <span class="dir">news/</span>            <span class="comment"># pygooglenews_adapter.py</span>
+│   ├── <span class="dir">rag/</span>
+│   │   ├── <span class="file">chroma_store.py</span>  <span class="comment"># ChromaStore: HTTP client → PersistentClient fallback</span>
+│   │   ├── <span class="file">ingest.py</span>        <span class="comment"># CLI: walk seed/, chunk (~800 words), upsert to Chroma</span>
+│   │   └── <span class="dir">seed/</span>            <span class="comment"># 21 .md articles across 5 categories</span>
+│   ├── <span class="dir">models/</span>              <span class="comment"># SQLAlchemy ORM: user, conversation, portfolio, goal</span>
+│   ├── <span class="dir">schemas/</span>             <span class="comment"># Pydantic v2 req/resp: auth, chat, portfolio, market, goal, settings</span>
+│   └── <span class="dir">core/</span>
+│       ├── <span class="file">config.py</span>        <span class="comment"># pydantic-settings Settings; loads .env + config.yaml</span>
+│       ├── <span class="file">database.py</span>      <span class="comment"># async engine (SQLite switch via USE_SQLITE); get_db()</span>
+│       ├── <span class="file">redis_client.py</span>  <span class="comment"># _InMemoryCache / _RedisCache; make_cache()</span>
+│       ├── <span class="file">llm.py</span>           <span class="comment"># get_llm() multi-provider factory</span>
+│       ├── <span class="file">security.py</span>      <span class="comment"># hash_password, verify_password, JWT create/decode</span>
+│       └── <span class="file">logging.py</span>       <span class="comment"># structlog: JSON (prod) or ConsoleRenderer (debug)</span>
+├── <span class="dir">tests/</span>
+│   ├── <span class="file">conftest.py</span>          <span class="comment"># Session fixtures; SQLite+InMemory overrides via os.environ</span>
+│   ├── <span class="dir">unit/</span>                <span class="comment"># test_security, test_cache, test_registry, test_supervisor</span>
+│   └── <span class="dir">integration/</span>         <span class="comment"># test_auth, test_portfolio</span>
+└── <span class="dir">ui/</span>
+    ├── <span class="dir">src/</span>
+    │   ├── <span class="file">App.tsx</span>          <span class="comment"># BrowserRouter + RequireAuth guard + routes</span>
+    │   ├── <span class="dir">pages/</span>           <span class="comment"># ChatPage, PortfolioPage, MarketPage, GoalsPage,</span>
+    │   │                    <span class="comment"># NewsPage, SettingsPage, LoginPage, Layout</span>
+    │   ├── <span class="dir">hooks/</span>
+    │   │   └── <span class="file">useChat.ts</span>   <span class="comment"># WS lifecycle + exponential backoff reconnect</span>
+    │   └── <span class="dir">lib/</span>
+    │       ├── <span class="file">api.ts</span>       <span class="comment"># axios instance; authApi, chatApi, portfolioApi, etc.</span>
+    │       ├── <span class="file">ws.ts</span>        <span class="comment"># createChatWS() URL builder</span>
+    │       └── <span class="file">auth.ts</span>      <span class="comment"># getToken(), setToken(), clearToken() (localStorage)</span>
+    ├── <span class="file">vite.config.ts</span>       <span class="comment"># Proxy /api → :8000; /ws → ws://localhost:8000</span>
+    └── <span class="file">Dockerfile.dev</span>       <span class="comment"># node:20-alpine for development container</span>
+  </div>
+
+  <h3>Key Implementation Patterns</h3>
+
+  <h4>1. Multi-Provider LLM Factory</h4>
+  <pre><code><span class="cm"># src/core/llm.py — single function, zero agent code changes when switching providers</span>
+<span class="kw">def</span> <span class="fn">get_llm</span>(temperature=<span class="num">0.3</span>, streaming=<span class="kw">False</span>):
+    provider, model = settings.llm_provider, settings.llm_model
+    <span class="kw">if</span> provider == <span class="str">"anthropic"</span>:
+        <span class="kw">from</span> langchain_anthropic <span class="kw">import</span> ChatAnthropic
+        <span class="kw">return</span> <span class="fn">ChatAnthropic</span>(model=model, streaming=streaming,
+                             api_key=settings.anthropic_api_key.get_secret_value())
+    <span class="kw">elif</span> provider == <span class="str">"openai"</span>:
+        <span class="kw">from</span> langchain_openai <span class="kw">import</span> ChatOpenAI
+        <span class="kw">return</span> <span class="fn">ChatOpenAI</span>(model=model, streaming=streaming, ...)
+    <span class="kw">elif</span> provider == <span class="str">"google"</span>:
+        <span class="kw">from</span> langchain_google_genai <span class="kw">import</span> ChatGoogleGenerativeAI
+        <span class="kw">return</span> <span class="fn">ChatGoogleGenerativeAI</span>(model=model, ...)
+    <span class="kw">elif</span> provider == <span class="str">"bedrock"</span>:
+        <span class="kw">from</span> langchain_aws <span class="kw">import</span> ChatBedrock
+        <span class="kw">return</span> <span class="fn">ChatBedrock</span>(model_id=model, region_name=settings.aws_region)
+    <span class="kw">raise</span> <span class="tp">ValueError</span>(<span class="fn">f</span><span class="str">"Unknown LLM_PROVIDER: {provider}"</span>)
+</code></pre>
+
+  <h4>2. Parallel Agent Fanout with Safe State Reduction</h4>
+  <pre><code><span class="cm"># graph.py — Send API dispatches agents in parallel</span>
+<span class="kw">def</span> <span class="fn">_fanout_to_agents</span>(state: dict) -> list[<span class="tp">Send</span>]:
+    selected = state.get(<span class="str">"selected_agents"</span>, [<span class="str">"qa"</span>])
+    <span class="kw">return</span> [<span class="fn">Send</span>(<span class="fn">f</span><span class="str">"{agent}_agent"</span>, state) <span class="kw">for</span> agent <span class="kw">in</span> selected]
+
+<span class="cm"># state.py — Annotated add reducer: parallel appends never overwrite</span>
+<span class="kw">class</span> <span class="tp">FinanceStateDict</span>(TypedDict, total=<span class="kw">False</span>):
+    agent_results: Annotated[list[dict], add]  <span class="cm"># &lt;-- thread-safe</span>
+
+<span class="cm"># After all agents complete, route based on count</span>
+<span class="kw">def</span> <span class="fn">_after_agents</span>(state: dict) -> str:
+    <span class="kw">if</span> len(state[<span class="str">"selected_agents"</span>]) &gt; <span class="num">1</span> <span class="kw">and</span> len(state[<span class="str">"agent_results"</span>]) &gt;= len(state[<span class="str">"selected_agents"</span>]):
+        <span class="kw">return</span> <span class="str">"synthesizer"</span>   <span class="cm"># merge multiple answers</span>
+    <span class="kw">return</span> <span class="str">"persist_turn"</span>       <span class="cm"># single agent: pass through</span>
+</code></pre>
+
+  <h4>3. Dependency Injection into Graph Nodes</h4>
+  <pre><code><span class="cm"># graph.py — wrap each node to embed registry and chroma_store</span>
+<span class="kw">def</span> <span class="fn">_inject</span>(fn, registry, chroma_store):
+    <span class="kw">async def</span> <span class="fn">wrapper</span>(state: dict) -> dict:
+        enriched = dict(state)
+        <span class="kw">if</span> registry:     enriched[<span class="str">"__registry__"</span>] = registry
+        <span class="kw">if</span> chroma_store: enriched[<span class="str">"__chroma_store__"</span>] = chroma_store
+        <span class="kw">return await</span> <span class="fn">fn</span>(enriched)
+    <span class="kw">return</span> wrapper
+
+<span class="cm"># Usage: wrap every agent node with injected dependencies at graph build time</span>
+g.<span class="fn">add_node</span>(<span class="str">"market_agent"</span>, <span class="fn">_inject</span>(market_agent, registry, chroma_store))
+</code></pre>
+
+  <h4>4. WebSocket astream_events Serializer</h4>
+  <pre><code><span class="cm"># ws.py — forward LangGraph events as typed WS frames</span>
+<span class="kw">async for</span> event <span class="kw">in</span> graph.<span class="fn">astream_events</span>(state, config=config, version=<span class="str">"v2"</span>):
+    kind, name = event[<span class="str">"event"</span>], event[<span class="str">"name"</span>]
+
+    <span class="kw">if</span> kind == <span class="str">"on_chain_start"</span> <span class="kw">and</span> name.<span class="fn">endswith</span>(<span class="str">"_agent"</span>):
+        <span class="kw">await</span> <span class="fn">send</span>(ws, {<span class="str">"type"</span>: <span class="str">"agent_start"</span>, <span class="str">"agent"</span>: name[:-<span class="num">6</span>]})
+
+    <span class="kw">elif</span> kind == <span class="str">"on_chat_model_stream"</span>:
+        delta = event[<span class="str">"data"</span>][<span class="str">"chunk"</span>].content
+        <span class="kw">if</span> delta:
+            final_response += delta
+            <span class="kw">await</span> <span class="fn">send</span>(ws, {<span class="str">"type"</span>: <span class="str">"token"</span>, <span class="str">"delta"</span>: delta})
+
+    <span class="kw">elif</span> kind == <span class="str">"on_chain_end"</span> <span class="kw">and</span> name == <span class="str">"persist_turn"</span>:
+        <span class="kw">for</span> c <span class="kw">in</span> event[<span class="str">"data"</span>][<span class="str">"output"</span>][<span class="str">"final_citations"</span>]:
+            <span class="kw">await</span> <span class="fn">send</span>(ws, {<span class="str">"type"</span>: <span class="str">"citation"</span>, **c})
+
+<span class="kw">await</span> <span class="fn">send</span>(ws, {<span class="str">"type"</span>: <span class="str">"final"</span>, <span class="str">"content"</span>: final_response, ...})
+</code></pre>
+
+  <h4>5. Dual Cache (Redis / In-Memory)</h4>
+  <pre><code><span class="cm"># redis_client.py — same interface, two implementations</span>
+<span class="kw">class</span> <span class="tp">_InMemoryCache</span>:            <span class="cm"># HF Spaces — no Redis</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        <span class="cm"># one TTLCache per TTL value</span>
+        self._stores: dict[int, TTLCache] = {}
+
+    <span class="kw">async def</span> <span class="fn">get</span>(self, key): ...
+    <span class="kw">async def</span> <span class="fn">set</span>(self, key, value, ex=<span class="num">60</span>): ...
+
+<span class="kw">def</span> <span class="fn">make_cache</span>():
+    <span class="kw">if</span> settings.use_in_memory_cache: <span class="kw">return</span> <span class="tp">_InMemoryCache</span>()
+    <span class="kw">return</span> <span class="tp">_RedisCache</span>()          <span class="cm"># aioredis for local/prod</span>
+</code></pre>
+
+  <h3>RAG Knowledge Base (21 Articles)</h3>
+  <div class="card-grid">
+    <div class="card-sm">
+      <div class="card-title">📈 Investing (6)</div>
+      <ul>
+        <li>What Is Investing</li><li>Risk &amp; Return</li><li>Index Funds</li>
+        <li>ETFs Explained</li><li>Dollar-Cost Averaging</li><li>Compound Interest</li>
+      </ul>
+    </div>
+    <div class="card-sm">
+      <div class="card-title">💼 Portfolio (3)</div>
+      <ul><li>Diversification</li><li>Asset Allocation</li><li>Rebalancing</li></ul>
+    </div>
+    <div class="card-sm">
+      <div class="card-title">🏛️ Tax (4)</div>
+      <ul>
+        <li>Capital Gains</li><li>Retirement Accounts</li>
+        <li>Tax-Loss Harvesting</li><li>Tax-Advantaged Accounts (401k/IRA/HSA/529)</li>
+      </ul>
+    </div>
+    <div class="card-sm">
+      <div class="card-title">🎯 Goals (4)</div>
+      <ul>
+        <li>Emergency Fund</li><li>Retirement Planning</li>
+        <li>House Down Payment</li><li>College Savings (529)</li>
+      </ul>
+    </div>
+    <div class="card-sm">
+      <div class="card-title">📊 Market (4)</div>
+      <ul>
+        <li>How Stock Market Works</li><li>Bonds &amp; Interest Rates</li>
+        <li>Market Cycles</li><li>Reading Financial Statements</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>HF Spaces Deployment</h3>
+  <pre><code><span class="cm"># README.md front-matter (must be first in file)</span>
+---
+title: Aurum AI Finance Assistant
+emoji: 💰
+colorFrom: yellow
+colorTo: green
+sdk: docker
+pinned: false
+app_port: <span class="num">7860</span>
+---
+
+<span class="cm"># Dockerfile.hf — build React, serve with FastAPI on port 7860</span>
+<span class="tp">FROM</span> python:<span class="num">3.12</span>-slim <span class="kw">AS</span> backend
+<span class="fn">RUN</span> pip install uv &amp;&amp; uv pip install --system -e <span class="str">".[anthropic]"</span>
+
+<span class="tp">FROM</span> node:<span class="num">20</span>-alpine <span class="kw">AS</span> ui-builder
+<span class="fn">RUN</span> npm ci &amp;&amp; npm run build    <span class="cm"># outputs to ui/dist/</span>
+
+<span class="tp">FROM</span> backend
+<span class="tp">ENV</span> USE_SQLITE=true USE_IN_MEMORY_CACHE=true PORT=<span class="num">7860</span>
+<span class="fn">CMD</span> [<span class="str">"uvicorn"</span>, <span class="str">"src.api.main:app"</span>, <span class="str">"--host"</span>, <span class="str">"0.0.0.0"</span>, <span class="str">"--port"</span>, <span class="str">"7860"</span>]
+<span class="cm"># FastAPI serves ui/dist/ as StaticFiles at "/" when it exists</span>
+</code></pre>
+</div>
+
+<!-- ═══════════════════ TESTING ═══════════════════ -->
+<div id="tab-testing" class="tab-content">
+  <div class="section-header"><div class="section-num">5</div><h2>Testing</h2></div>
+
+  <h3>Test Strategy</h3>
+  <div class="two-col">
+    <div class="card-sm">
+      <div class="card-title">⚡ Unit Tests</div>
+      <p>Pure logic with mocks. No network, no DB, no LLM API calls. Tests run in &lt;1 second. Covers:</p>
+      <ul>
+        <li>Security helpers (bcrypt, JWT)</li>
+        <li>In-memory cache (TTL buckets)</li>
+        <li>Adapter registry (priority, caching, fallthrough)</li>
+        <li>Supervisor routing (JSON parsing, fallback, filtering)</li>
+      </ul>
+    </div>
+    <div class="card-sm">
+      <div class="card-title">🔗 Integration Tests</div>
+      <p>Full HTTP request/response via FastAPI <code>TestClient</code>. Uses SQLite test DB + in-memory cache (no Docker required). Covers:</p>
+      <ul>
+        <li>Auth flow: register, login, /me, 409/401/422 error cases</li>
+        <li>Portfolio CRUD: create, list, get, delete</li>
+        <li>Holdings CRUD: add, list, delete</li>
+        <li>Cross-user access control (404 for other user's resources)</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Test Configuration</h3>
+  <pre><code><span class="cm"># pyproject.toml</span>
+[tool.pytest.ini_options]
+asyncio_mode = <span class="str">"auto"</span>   <span class="cm"># all async functions auto-awaited</span>
+testpaths    = [<span class="str">"tests"</span>]
+
+<span class="cm"># tests/conftest.py — must run BEFORE any src.* imports</span>
+<span class="kw">import</span> os
+os.environ[<span class="str">"USE_SQLITE"</span>]          = <span class="str">"true"</span>   <span class="cm"># SQLite test DB</span>
+os.environ[<span class="str">"USE_IN_MEMORY_CACHE"</span>] = <span class="str">"true"</span>   <span class="cm"># no Redis needed</span>
+os.environ[<span class="str">"DATABASE_URL"</span>] = <span class="str">"sqlite+aiosqlite:///./data/test_aurum.db"</span>
+os.environ.setdefault(<span class="str">"SECRET_KEY"</span>, <span class="str">"test-secret-key-32chars!"</span>)
+</code></pre>
+
+  <h3>Unit Test Files</h3>
+  <div class="test-file">
+    <div class="test-file-header">
+      <span class="test-file-name">tests/unit/test_security.py</span>
+      <span class="test-count">5 tests</span>
+    </div>
+    <div class="test-list">
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_hash_and_verify_password</code> — bcrypt round-trip; wrong password returns False</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_hash_produces_different_salts</code> — same password hashes differently each time</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_create_and_decode_token</code> — JWT encode → decode; subject and exp fields present</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_decode_invalid_token_raises</code> — non-JWT string raises <code>ValueError</code></span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_decode_tampered_token_raises</code> — last 5 chars replaced → signature validation fails</span></div>
+    </div>
+  </div>
+
+  <div class="test-file">
+    <div class="test-file-header">
+      <span class="test-file-name">tests/unit/test_cache.py</span>
+      <span class="test-count">6 tests</span>
+    </div>
+    <div class="test-list">
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_get_returns_none_for_missing_key</code> — empty cache returns None</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_set_and_get_roundtrip</code> — stored value returned correctly</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_delete_removes_key</code> — deleted key returns None</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_different_ttl_buckets_are_independent</code> — 10s and 3600s buckets coexist</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_overwrite_key</code> — second set wins</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_close_does_not_raise</code> — close() is a no-op on in-memory cache</span></div>
+    </div>
+  </div>
+
+  <div class="test-file">
+    <div class="test-file-header">
+      <span class="test-file-name">tests/unit/test_registry.py</span>
+      <span class="test-count">9 tests</span>
+    </div>
+    <div class="test-list">
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_register_market_adapter_appears_in_list</code> — registry.list_enabled() includes adapter</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_primary_market_returns_first_priority</code> — lower priority number = tried first</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_primary_market_raises_when_empty</code> — <code>NoAdapterAvailable</code> with no adapters</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_get_quote_returns_cached_value</code> — cache pre-loaded; adapter.get_quote NOT called</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_get_quote_calls_adapter_on_cache_miss</code> — cache empty; adapter.get_quote called once</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_get_quote_falls_through_to_second_adapter</code> — primary raises; fallback returns value</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_get_quote_raises_when_all_adapters_fail</code> — all adapters raise; <code>NoAdapterAvailable</code> raised</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_get_history_returns_list_of_bars</code> — returns <code>list[Bar]</code> with correct close price</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_fetch_news_returns_empty_when_no_news_adapter</code> — empty list, no exception</span></div>
+    </div>
+  </div>
+
+  <div class="test-file">
+    <div class="test-file-header">
+      <span class="test-file-name">tests/unit/test_supervisor.py</span>
+      <span class="test-count">8 tests</span>
+    </div>
+    <div class="test-list">
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_routes_to_market_agent</code> — LLM returns market JSON; selected_agents == ["market"]</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_routes_to_multiple_agents</code> — LLM returns ["portfolio","market"]; both selected</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_falls_back_to_qa_on_invalid_json</code> — LLM returns garbage; selected_agents == ["qa"]</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_falls_back_on_llm_exception</code> — LLM raises RuntimeError; graceful fallback to qa</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_filters_out_invalid_agent_names</code> — "hacker" removed; "market" kept</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_defaults_to_qa_when_all_agents_invalid</code> — only bad names → defaults to ["qa"]</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_sets_needs_followup_for_low_confidence</code> — confidence 0.4 → needs_followup True</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_strips_markdown_code_fences</code> — <code>```json\n{...}\n```</code> parsed correctly</span></div>
+    </div>
+  </div>
+
+  <h3>Integration Test Files</h3>
+  <div class="test-file">
+    <div class="test-file-header">
+      <span class="test-file-name">tests/integration/test_auth.py</span>
+      <span class="test-count">10 tests</span>
+    </div>
+    <div class="test-list">
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_register_returns_201_and_token</code> — status 201, access_token present, token_type="bearer"</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_register_duplicate_email_returns_409</code> — second register with same email → 409</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_register_with_full_profile</code> — full_name, risk_tolerance=aggressive, knowledge_level=advanced</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_register_invalid_risk_tolerance_returns_422</code> — "reckless" fails Pydantic validation</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_login_valid_credentials_returns_token</code> — correct email/pass → 200 + token</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_login_wrong_password_returns_401</code> — wrong password → 401 "invalid credentials"</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_login_unknown_email_returns_401</code> — ghost@nowhere.com → 401</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_me_returns_user_profile</code> — email, id, risk_tolerance in response body</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_me_without_token_returns_401</code> — no Authorization header → 401</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_me_with_bad_token_returns_401</code> — garbage Bearer token → 401</span></div>
+    </div>
+  </div>
+
+  <div class="test-file">
+    <div class="test-file-header">
+      <span class="test-file-name">tests/integration/test_portfolio.py</span>
+      <span class="test-count">9 tests</span>
+    </div>
+    <div class="test-list">
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_create_portfolio</code> — POST /api/portfolio → 201, name and id in response</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_list_portfolios</code> — created portfolio appears in GET list</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_get_single_portfolio</code> — GET /api/portfolio/{id} returns correct portfolio</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_get_other_users_portfolio_returns_404</code> — access control enforced at DB query level</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_delete_portfolio</code> — DELETE 204 → subsequent GET returns 404</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_add_holding</code> — POST holdings → 201, symbol=AAPL, id present</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_list_holdings</code> — added AAPL holding appears in GET list</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_delete_holding</code> — DELETE holding → 204</span></div>
+      <div class="test-item"><span class="test-check">✓</span><span><code>test_portfolio_requires_auth</code> — no token → 401</span></div>
+    </div>
+  </div>
+
+  <h3>Running the Tests</h3>
+  <pre><code><span class="cm"># Install dependencies (includes dev extras)</span>
+uv pip install -e <span class="str">".[anthropic,dev]"</span>
+
+<span class="cm"># Run all tests</span>
+pytest tests/ -v
+
+<span class="cm"># Unit tests only (fast, no DB, no network)</span>
+pytest tests/unit/ -v
+
+<span class="cm"># Integration tests only</span>
+pytest tests/integration/ -v
+
+<span class="cm"># With coverage report</span>
+pytest tests/ --cov=src --cov-report=term-missing
+
+<span class="cm"># Target: 70%+ coverage on src/</span>
+<span class="cm"># Coverage excludes: src/agents/graph.py (LangGraph integration),</span>
+<span class="cm">#                    src/rag/ingest.py (CLI tool)</span>
+</code></pre>
+
+  <h3>Testing Notes</h3>
+  <div class="card">
+    <h4>What's Mocked</h4>
+    <ul>
+      <li><strong>LLM calls</strong> — <code>@patch("src.agents.supervisor.get_llm")</code> with <code>AsyncMock</code>; no API key required for unit tests</li>
+      <li><strong>Market adapters</strong> — <code>MagicMock</code> with <code>AsyncMock</code> methods; no yfinance network calls</li>
+      <li><strong>Database</strong> — overridden with SQLite via <code>os.environ</code> at conftest level; tables auto-created by lifespan</li>
+      <li><strong>Cache</strong> — <code>_InMemoryCache</code> (no Redis container needed)</li>
+    </ul>
+    <h4>What's Not Mocked (Integration)</h4>
+    <ul>
+      <li>FastAPI routing, middleware, dependency injection</li>
+      <li>SQLAlchemy ORM queries on SQLite</li>
+      <li>bcrypt hashing and JWT encode/decode</li>
+      <li>Pydantic validation (422 responses)</li>
+      <li>Cross-user access control logic</li>
+    </ul>
+  </div>
+</div>
+
+<footer>
+  <div style="margin-bottom:8px"><strong>Aurum — AI Finance Assistant</strong></div>
+  <div>© 2024 <strong>Kapil Manchanda</strong>. All rights reserved.</div>
+  <div style="margin-top:6px;font-size:11px;color:var(--text2)">
+    Confidential and proprietary. Unauthorized use, reproduction, or distribution of this documentation
+    or the associated software, in whole or in part, is strictly prohibited without prior written permission.
+  </div>
+  <div style="margin-top:10px;font-size:11px">
+    Capstone project — Applied Agentic AI for SWEs &nbsp;|&nbsp;
+    <a href="plan.html">Project Plan</a> &nbsp;|&nbsp;
+    Built with FastAPI · LangGraph · React · ChromaDB · yfinance
+  </div>
+</footer>
+
+<script>
+// Theme
+function toggleTheme() {
+  const root = document.documentElement;
+  const isDark = root.getAttribute('data-theme') === 'dark';
+  root.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('theme-btn').textContent = isDark ? '🌙 Dark' : '☀️ Light';
+  localStorage.setItem('aurum-theme', isDark ? 'light' : 'dark');
+  mermaid.initialize({ theme: isDark ? 'default' : 'dark' });
+  document.querySelectorAll('.mermaid[data-processed]').forEach(el => {
+    el.removeAttribute('data-processed');
+    el.innerHTML = el.getAttribute('data-src') || el.innerHTML;
+  });
+}
+
+// Tabs
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+  localStorage.setItem('aurum-tab', id);
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+  const theme = localStorage.getItem('aurum-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+  document.getElementById('theme-btn').textContent = theme === 'dark' ? '☀️ Light' : '🌙 Dark';
+
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: theme === 'dark' ? 'dark' : 'default',
+    themeVariables: { primaryColor: '#d4a843', primaryTextColor: '#e6edf3', lineColor: '#8b949e' }
+  });
+
+  const savedTab = localStorage.getItem('aurum-tab');
+  if (savedTab) {
+    const btn = document.querySelector(`.tab-btn[onclick*="'${savedTab}'"]`);
+    if (btn) showTab(savedTab, btn);
+  }
+});
+</script>
+</body>
+</html>

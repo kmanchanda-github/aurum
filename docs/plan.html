@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aurum — Project Plan</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    /* ── CSS Custom Properties ─────────────────────────────────────────── */
+    :root {
+      --accent:        #d4a843;
+      --accent-dim:    #a07830;
+      --accent-glow:   rgba(212, 168, 67, 0.15);
+
+      /* dark defaults */
+      --bg:            #0d1117;
+      --bg-card:       #161b22;
+      --text:          #e6edf3;
+      --text-muted:    #8b949e;
+      --border:        #30363d;
+      --header-bg:     rgba(13, 17, 23, 0.92);
+      --tag-bg:        rgba(212, 168, 67, 0.12);
+      --risk-high:     #f85149;
+      --risk-med:      #d29922;
+      --risk-low:      #3fb950;
+      --code-bg:       #0d1117;
+      --step-done:     #238636;
+    }
+
+    [data-theme="light"] {
+      --bg:            #f6f8fa;
+      --bg-card:       #ffffff;
+      --text:          #24292f;
+      --text-muted:    #57606a;
+      --border:        #d0d7de;
+      --header-bg:     rgba(246, 248, 250, 0.92);
+      --tag-bg:        rgba(212, 168, 67, 0.10);
+      --code-bg:       #f6f8fa;
+    }
+
+    /* ── Reset / Base ──────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
+                   Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      transition: background 0.25s, color 0.25s;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Sticky Header ─────────────────────────────────────────────────── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--header-bg);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      text-decoration: none;
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: 0.02em;
+      flex-shrink: 0;
+    }
+
+    .header-brand .logo-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .header-title {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .header-sep {
+      color: var(--border);
+      flex-shrink: 0;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      margin-left: auto;
+    }
+
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      transition: color 0.2s;
+    }
+
+    nav a:hover { color: var(--accent); }
+
+    nav a.active {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .theme-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      cursor: pointer;
+      padding: 0.3rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      transition: border-color 0.2s, background 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-shrink: 0;
+    }
+
+    .theme-btn:hover { border-color: var(--accent); }
+
+    /* ── Main Layout ───────────────────────────────────────────────────── */
+    main {
+      flex: 1;
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 3rem 2rem 4rem;
+    }
+
+    /* ── Hero ──────────────────────────────────────────────────────────── */
+    .hero {
+      text-align: center;
+      padding: 3.5rem 1rem 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: var(--tag-bg);
+      border: 1px solid var(--accent-dim);
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.28rem 0.9rem;
+      border-radius: 999px;
+      margin-bottom: 1.25rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.2rem, 5vw, 3.4rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--accent) 0%, #f0c060 50%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.6rem;
+      line-height: 1.15;
+    }
+
+    .hero-sub {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 640px;
+      margin: 0 auto 1.5rem;
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .hero-meta span {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .hero-meta strong { color: var(--text); }
+
+    /* ── Section Styles ────────────────────────────────────────────────── */
+    section {
+      margin-bottom: 3.5rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-number {
+      background: var(--accent);
+      color: #0d1117;
+      font-weight: 800;
+      font-size: 0.75rem;
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .section-header h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--text);
+    }
+
+    /* ── Cards ─────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: border-color 0.2s;
+    }
+
+    .card:hover { border-color: var(--accent-dim); }
+
+    .card-grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+
+    .card h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card p, .card li {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .card ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .card ul li::before {
+      content: "›";
+      color: var(--accent);
+      margin-right: 0.5rem;
+      font-weight: 700;
+    }
+
+    /* ── Goal Tags ─────────────────────────────────────────────────────── */
+    .goals-grid {
+      display: grid;
+      gap: 0.75rem;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+
+    .goal-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.9rem;
+      transition: border-color 0.2s;
+    }
+
+    .goal-item:hover { border-color: var(--accent-dim); }
+
+    .goal-icon {
+      background: var(--tag-bg);
+      border: 1px solid var(--accent-dim);
+      border-radius: 8px;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .goal-text strong {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.2rem;
+    }
+
+    .goal-text span {
+      font-size: 0.815rem;
+      color: var(--text-muted);
+    }
+
+    /* ── Day Timeline ──────────────────────────────────────────────────── */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      position: relative;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 30px;
+      top: 20px;
+      bottom: 20px;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--accent), var(--accent-dim), transparent);
+      border-radius: 999px;
+    }
+
+    .day-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem 1.25rem 5.5rem;
+      position: relative;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .day-card:hover {
+      border-color: var(--accent-dim);
+      box-shadow: 0 0 0 1px var(--accent-glow),
+                  0 4px 16px rgba(0,0,0,0.2);
+    }
+
+    .day-badge {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #0d1117;
+      font-weight: 800;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      z-index: 1;
+      box-shadow: 0 0 0 3px var(--bg-card),
+                  0 0 0 4px var(--accent-dim);
+    }
+
+    .day-card-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 700px) {
+      .day-card-inner { grid-template-columns: 1fr; }
+    }
+
+    .day-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+
+    .day-title span {
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--accent);
+      background: var(--tag-bg);
+      border: 1px solid var(--accent-dim);
+      border-radius: 999px;
+      padding: 0.1rem 0.6rem;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+
+    .day-deliverables ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .day-deliverables ul li {
+      font-size: 0.835rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .day-deliverables ul li::before {
+      content: "▸";
+      color: var(--accent);
+      flex-shrink: 0;
+      line-height: 1.5;
+    }
+
+    .day-exit {
+      background: rgba(35, 134, 54, 0.08);
+      border: 1px solid rgba(63, 185, 80, 0.25);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+    }
+
+    .day-exit-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--risk-low);
+      margin-bottom: 0.3rem;
+    }
+
+    .day-exit p {
+      font-size: 0.835rem;
+      color: var(--text-muted);
+    }
+
+    .day-exit code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.8rem;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      padding: 0.05rem 0.35rem;
+      border-radius: 4px;
+      color: var(--accent);
+    }
+
+    /* ── Architecture / Mermaid ────────────────────────────────────────── */
+    .arch-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ── Risk Table ────────────────────────────────────────────────────── */
+    .risk-table-wrap {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    table.risk-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--bg-card);
+      font-size: 0.875rem;
+    }
+
+    table.risk-table thead {
+      background: var(--tag-bg);
+    }
+
+    table.risk-table th {
+      padding: 0.85rem 1.1rem;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.78rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border-bottom: 1px solid var(--border);
+    }
+
+    table.risk-table td {
+      padding: 0.85rem 1.1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      vertical-align: top;
+    }
+
+    table.risk-table tr:last-child td { border-bottom: none; }
+
+    table.risk-table tr:hover td { background: var(--tag-bg); }
+
+    .risk-pill {
+      display: inline-block;
+      padding: 0.18rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .risk-high   { background: rgba(248,81,73,0.15);  color: var(--risk-high);  border: 1px solid rgba(248,81,73,0.35); }
+    .risk-medium { background: rgba(210,153,34,0.15); color: var(--risk-med);   border: 1px solid rgba(210,153,34,0.35); }
+    .risk-low    { background: rgba(63,185,80,0.12);  color: var(--risk-low);   border: 1px solid rgba(63,185,80,0.3); }
+
+    /* ── Deployment Cards ──────────────────────────────────────────────── */
+    .deploy-grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+
+    .deploy-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: border-color 0.2s;
+    }
+
+    .deploy-card:hover { border-color: var(--accent-dim); }
+
+    .deploy-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.35rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .deploy-card h3 .env-tag {
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: var(--tag-bg);
+      border: 1px solid var(--accent-dim);
+      color: var(--accent);
+      border-radius: 4px;
+      padding: 0.1rem 0.45rem;
+    }
+
+    .deploy-card .deploy-cmd {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.82rem;
+      color: var(--accent);
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.65rem 1rem;
+      margin: 0.75rem 0;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .deploy-card ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      margin-top: 0.5rem;
+    }
+
+    .deploy-card ul li {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.4rem;
+    }
+
+    .deploy-card ul li::before {
+      content: "·";
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* ── Footer ────────────────────────────────────────────────────────── */
+    footer {
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      padding: 1.5rem 2rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    footer strong { color: var(--accent); }
+
+    /* ── Utility ───────────────────────────────────────────────────────── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2.5rem 0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Sticky Header ──────────────────────────────────────────────────── -->
+<header>
+  <a href="index.html" class="header-brand">
+    <span class="logo-dot"></span>
+    Aurum
+  </a>
+  <span class="header-sep">|</span>
+  <span class="header-title">Project Plan</span>
+
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="plan.html" class="active">Plan</a>
+    <button class="theme-btn" id="themeToggle">
+      <span id="themeIcon">☀️</span>
+      <span id="themeLabel">Light</span>
+    </button>
+  </nav>
+</header>
+
+<!-- ── Main Content ───────────────────────────────────────────────────── -->
+<main>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-badge">Capstone Project — Applied Agentic AI for SWEs</div>
+    <h1>Aurum</h1>
+    <p class="hero-sub">
+      Production-ready multi-agent financial literacy assistant.<br/>
+      LangGraph orchestration · Real-time streaming · RAG-grounded · React SPA.
+    </p>
+    <div class="hero-meta">
+      <span>Author: <strong>Kapil Manchanda</strong></span>
+      <span>Timeline: <strong>7-Day Accelerated Build</strong></span>
+      <span>Language: <strong>Latin — "Gold"</strong></span>
+      <span>Status: <strong>Complete</strong></span>
+    </div>
+  </div>
+
+  <!-- ── Section 1: Project Overview ──────────────────────────────────── -->
+  <section id="overview">
+    <div class="section-header">
+      <div class="section-number">1</div>
+      <h2>Project Overview</h2>
+    </div>
+
+    <div class="card-grid">
+      <div class="card">
+        <h3>📌 What It Is</h3>
+        <p>
+          Aurum is a production-ready, multi-agent AI system for financial literacy.
+          Users interact through a streaming chat interface backed by six parallel
+          specialist agents — each grounded in a private RAG corpus and real-time
+          market data — orchestrated by a LangGraph supervisor.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>🎯 Core Value Proposition</h3>
+        <ul>
+          <li>Six specialist agents run in parallel via Send-fanout</li>
+          <li>Typed WebSocket frames for real-time streaming UX</li>
+          <li>RAG over 21 curated financial education articles</li>
+          <li>Pluggable LLM providers — swap without code changes</li>
+          <li>Pluggable market data adapters with registry fallback</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>📚 Course Context</h3>
+        <ul>
+          <li>Course: Applied Agentic AI for SWEs</li>
+          <li>Format: 7-day capstone sprint</li>
+          <li>Goal: end-to-end production AI system</li>
+          <li>Focus: LangGraph, RAG, streaming, adapters</li>
+          <li>Deploy: local Docker + Hugging Face Spaces</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>⚙️ Tech Stack at a Glance</h3>
+        <ul>
+          <li>FastAPI + LangGraph + Celery</li>
+          <li>PostgreSQL + Redis + ChromaDB</li>
+          <li>React 18 + Vite + TypeScript + Tailwind</li>
+          <li>Recharts for data visualizations</li>
+          <li>Docker Compose + nginx (production)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Section 2: Goals & Success Criteria ───────────────────────────── -->
+  <section id="goals">
+    <div class="section-header">
+      <div class="section-number">2</div>
+      <h2>Goals &amp; Success Criteria</h2>
+    </div>
+
+    <div class="goals-grid">
+
+      <div class="goal-item">
+        <div class="goal-icon">🕸️</div>
+        <div class="goal-text">
+          <strong>Multi-Agent Orchestration</strong>
+          <span>LangGraph supervisor routes to 6 specialist agents (QA, Portfolio, Market, Goals, News, Tax) via parallel Send-fanout edges.</span>
+        </div>
+      </div>
+
+      <div class="goal-item">
+        <div class="goal-icon">⚡</div>
+        <div class="goal-text">
+          <strong>Real-Time WebSocket Streaming</strong>
+          <span>Typed frame protocol: <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">agent_start</code>, <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">token</code>, <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">citation</code>, <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">final</code>. Exponential backoff reconnect.</span>
+        </div>
+      </div>
+
+      <div class="goal-item">
+        <div class="goal-icon">📈</div>
+        <div class="goal-text">
+          <strong>Pluggable Market Data Adapters</strong>
+          <span>yfinance as primary source; AlphaVantage as fallback. AdapterRegistry handles priority and health checks.</span>
+        </div>
+      </div>
+
+      <div class="goal-item">
+        <div class="goal-icon">🔍</div>
+        <div class="goal-text">
+          <strong>ChromaDB RAG Corpus</strong>
+          <span>21 financial education articles across 5 categories. Query-time category filtering for precision retrieval.</span>
+        </div>
+      </div>
+
+      <div class="goal-item">
+        <div class="goal-icon">🖥️</div>
+        <div class="goal-text">
+          <strong>React + Vite SPA</strong>
+          <span>shadcn/ui components, TanStack Query, Recharts visualizations (AllocationPie, PerformanceChart, Monte Carlo ProjectionChart).</span>
+        </div>
+      </div>
+
+      <div class="goal-item">
+        <div class="goal-icon">🐳</div>
+        <div class="goal-text">
+          <strong>Docker Compose Local Deploy</strong>
+          <span>All services on a bridge network. <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">docker compose up</code> starts Postgres, Redis, API, and Celery workers.</span>
+        </div>
+      </div>
+
+      <div class="goal-item">
+        <div class="goal-icon">🤗</div>
+        <div class="goal-text">
+          <strong>Hugging Face Spaces Production Deploy</strong>
+          <span>Single container via <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">Dockerfile.hf</code> on port 7860. SQLite + in-memory cache fallback.</span>
+        </div>
+      </div>
+
+      <div class="goal-item">
+        <div class="goal-icon">🔌</div>
+        <div class="goal-text">
+          <strong>Multi-Provider LLM</strong>
+          <span>Anthropic, OpenAI, Google, AWS Bedrock — configured via <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">.env</code>. All agents call <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">get_llm()</code>.</span>
+        </div>
+      </div>
+
+      <div class="goal-item">
+        <div class="goal-icon">✅</div>
+        <div class="goal-text">
+          <strong>70%+ Test Coverage</strong>
+          <span>Unit tests for security, cache, registry, supervisor. Integration tests for auth and portfolio CRUD. pytest + coverage.</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Section 3: 7-Day Timeline ─────────────────────────────────────── -->
+  <section id="timeline">
+    <div class="section-header">
+      <div class="section-number">3</div>
+      <h2>7-Day Phased Implementation</h2>
+    </div>
+
+    <div class="timeline">
+
+      <!-- Day 1 -->
+      <div class="day-card">
+        <div class="day-badge">1</div>
+        <div class="day-title">Scaffold + Core Infrastructure <span>Day 1</span></div>
+        <div class="day-card-inner">
+          <div class="day-deliverables">
+            <ul>
+              <li>Init repo; <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">pyproject.toml</code> with all LLM provider extras</li>
+              <li><code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">Dockerfile</code>, <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">docker-compose.yml</code>, <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">.env.example</code>, <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">config.yaml</code></li>
+              <li><code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">src/core/</code> — config (pydantic-settings), database (async SQLAlchemy), redis_client, security/JWT, logging</li>
+              <li>Multi-provider LLM factory (<code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">src/core/llm.py</code>)</li>
+              <li>Alembic + migration: users, conversations, messages</li>
+              <li>FastAPI skeleton: <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">main.py</code> lifespan, auth routes, health route</li>
+            </ul>
+          </div>
+          <div class="day-exit">
+            <div class="day-exit-label">Exit Criteria</div>
+            <p><code>docker compose up</code> → <code>POST /api/auth/register</code> returns a valid JWT token.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Day 2 -->
+      <div class="day-card">
+        <div class="day-badge">2</div>
+        <div class="day-title">Adapters + RAG + Basic Agent Graph <span>Day 2</span></div>
+        <div class="day-card-inner">
+          <div class="day-deliverables">
+            <ul>
+              <li>Adapter ABCs + <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">YFinanceAdapter</code> + <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">PyGoogleNewsAdapter</code> + AdapterRegistry</li>
+              <li>ChromaStore, <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">ingest.py</code>, chunking, embeddings pipeline</li>
+              <li>Seed ~7 articles across all 5 RAG categories</li>
+              <li>LangGraph: <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">state.py</code>, <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">graph.py</code> — supervisor_route, retrieve_rag, qa_agent, market_agent</li>
+              <li>WebSocket manager + streaming chat route</li>
+            </ul>
+          </div>
+          <div class="day-exit">
+            <div class="day-exit-label">Exit Criteria</div>
+            <p>"What's AAPL at?" → streamed answer with live market data and RAG citations.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Day 3 -->
+      <div class="day-card">
+        <div class="day-badge">3</div>
+        <div class="day-title">All 6 Agents + Synthesizer <span>Day 3</span></div>
+        <div class="day-card-inner">
+          <div class="day-deliverables">
+            <ul>
+              <li>portfolio_agent, goals_agent, news_agent, tax_agent + <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">.txt</code> system prompt files</li>
+              <li>Synthesizer node + multi-agent Send-fanout edges</li>
+              <li>clarify_node for low-confidence supervisor routing</li>
+              <li>Alembic migration: portfolios, holdings, goals tables</li>
+              <li>PortfolioService, GoalsService, ConversationService</li>
+            </ul>
+          </div>
+          <div class="day-exit">
+            <div class="day-exit-label">Exit Criteria</div>
+            <p>Multi-domain queries route to correct agent subset and synthesize a coherent, grounded response.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Day 4 -->
+      <div class="day-card">
+        <div class="day-badge">4</div>
+        <div class="day-title">All API Routes + Services <span>Day 4</span></div>
+        <div class="day-card-inner">
+          <div class="day-deliverables">
+            <ul>
+              <li>All FastAPI routes: portfolio, market, goals, news, tax, settings</li>
+              <li>Pydantic request/response schemas for all domains</li>
+              <li>AlphaVantage adapter — validates registry fallback logic</li>
+              <li>RAG corpus expanded to 21 seed articles</li>
+              <li>Per-user adapter priority settings persisted in DB</li>
+            </ul>
+          </div>
+          <div class="day-exit">
+            <div class="day-exit-label">Exit Criteria</div>
+            <p>All REST endpoints return correct shapes; Swagger UI is complete at <code>/docs</code>.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Day 5 -->
+      <div class="day-card">
+        <div class="day-badge">5</div>
+        <div class="day-title">React UI — Chat + Portfolio + Market <span>Day 5</span></div>
+        <div class="day-card-inner">
+          <div class="day-deliverables">
+            <ul>
+              <li>Scaffold: Vite + React + TS + Tailwind + shadcn/ui + TanStack Query</li>
+              <li>Auth pages, Layout, route guard (<code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">PrivateRoute</code>)</li>
+              <li><code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">useChat</code> WS hook — streaming token buffer + exponential backoff reconnect</li>
+              <li>ChatPage — live streaming with agent badges and citation chips</li>
+              <li>PortfolioPage — HoldingsTable, AllocationPie (Recharts), PerformanceChart</li>
+              <li>MarketPage — IndicesStrip, WatchlistTable, PriceChart</li>
+            </ul>
+          </div>
+          <div class="day-exit">
+            <div class="day-exit-label">Exit Criteria</div>
+            <p>Full chat works in browser with streaming tokens; portfolio charts render live data from API.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Day 6 -->
+      <div class="day-card">
+        <div class="day-badge">6</div>
+        <div class="day-title">React UI — Goals + News + Settings + HF Deploy <span>Day 6</span></div>
+        <div class="day-card-inner">
+          <div class="day-deliverables">
+            <ul>
+              <li>GoalsPage — GoalWizard, RiskToleranceSlider, Monte Carlo ProjectionChart (p10/p50/p90 bands)</li>
+              <li>NewsPage — NewsCard grid, query bar, auto-refresh</li>
+              <li>SettingsPage — DataSourceCard with health badges</li>
+              <li><code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">Dockerfile.hf</code> + README.md HF metadata block</li>
+              <li>SQLite + in-memory cache fallback for Hugging Face Spaces</li>
+              <li><code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">docker-compose.prod.yml</code> with nginx reverse proxy</li>
+            </ul>
+          </div>
+          <div class="day-exit">
+            <div class="day-exit-label">Exit Criteria</div>
+            <p>Production Docker Compose starts cleanly; HF Spaces smoke-test passes on port 7860.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Day 7 -->
+      <div class="day-card">
+        <div class="day-badge">7</div>
+        <div class="day-title">Testing, Hardening &amp; Polish <span>Day 7</span></div>
+        <div class="day-card-inner">
+          <div class="day-deliverables">
+            <ul>
+              <li>Unit tests: test_security, test_cache, test_registry, test_supervisor</li>
+              <li>Integration tests: test_auth (register/login/me), test_portfolio (CRUD)</li>
+              <li>Request-ID middleware (<code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">X-Request-ID</code>), rate limiting (slowapi)</li>
+              <li>WebSocket reconnect — 8 attempts, max 30 s delay</li>
+              <li><code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">nginx.conf</code> for production reverse proxy</li>
+              <li><code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">scripts/seed_demo_data.py</code> + 21 RAG articles complete</li>
+            </ul>
+          </div>
+          <div class="day-exit">
+            <div class="day-exit-label">Exit Criteria</div>
+            <p><code>pytest tests/</code> passes at 70%+ coverage; nginx config verified; all docs generated.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Section 4: Architecture ───────────────────────────────────────── -->
+  <section id="architecture">
+    <div class="section-header">
+      <div class="section-number">4</div>
+      <h2>System Architecture</h2>
+    </div>
+
+    <div class="arch-container">
+      <div class="mermaid">
+flowchart TD
+    A([User Browser]) -->|HTTPS / WS| B[React SPA\nVite · TypeScript · Recharts]
+    B -->|REST + WebSocket| C[FastAPI Gateway\nJWT · Rate Limit · Request-ID]
+    C -->|Celery task| D[LangGraph Supervisor\norchestrator.py]
+
+    D -->|Send-fanout| E1[QA Agent]
+    D -->|Send-fanout| E2[Portfolio Agent]
+    D -->|Send-fanout| E3[Market Agent]
+    D -->|Send-fanout| E4[Goals Agent]
+    D -->|Send-fanout| E5[News Agent]
+    D -->|Send-fanout| E6[Tax Agent]
+
+    E1 & E2 & E3 & E4 & E5 & E6 --> F[Synthesizer Node]
+    F --> G[persist_turn]
+
+    G --> H[(PostgreSQL\nusers · portfolios\nconversations)]
+    G --> I[(Redis\ncache · sessions)]
+    G --> J[(ChromaDB\n21 RAG articles)]
+
+    E3 -->|live data| K[AdapterRegistry\nyfinance · AlphaVantage]
+    E5 -->|headlines| L[PyGoogleNews\nAdapter]
+
+    style A fill:#d4a843,color:#0d1117,stroke:none
+    style B fill:#161b22,color:#e6edf3,stroke:#30363d
+    style C fill:#161b22,color:#e6edf3,stroke:#30363d
+    style D fill:#d4a843,color:#0d1117,stroke:none
+    style E1 fill:#1f2d1f,color:#3fb950,stroke:#238636
+    style E2 fill:#1f2d1f,color:#3fb950,stroke:#238636
+    style E3 fill:#1f2d1f,color:#3fb950,stroke:#238636
+    style E4 fill:#1f2d1f,color:#3fb950,stroke:#238636
+    style E5 fill:#1f2d1f,color:#3fb950,stroke:#238636
+    style E6 fill:#1f2d1f,color:#3fb950,stroke:#238636
+    style F fill:#161b22,color:#e6edf3,stroke:#30363d
+    style G fill:#161b22,color:#e6edf3,stroke:#30363d
+    style H fill:#0d1117,color:#8b949e,stroke:#30363d
+    style I fill:#0d1117,color:#8b949e,stroke:#30363d
+    style J fill:#0d1117,color:#8b949e,stroke:#30363d
+    style K fill:#0d1117,color:#8b949e,stroke:#30363d
+    style L fill:#0d1117,color:#8b949e,stroke:#30363d
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Section 5: Risk Register ──────────────────────────────────────── -->
+  <section id="risks">
+    <div class="section-header">
+      <div class="section-number">5</div>
+      <h2>Risk Register</h2>
+    </div>
+
+    <div class="risk-table-wrap">
+      <table class="risk-table">
+        <thead>
+          <tr>
+            <th>Risk</th>
+            <th>Likelihood</th>
+            <th>Impact</th>
+            <th>Mitigation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Google Finance API unavailable or rate-limited</td>
+            <td><span class="risk-pill risk-high">High</span></td>
+            <td><span class="risk-pill risk-high">High</span></td>
+            <td>Use yfinance (Yahoo Finance data, identical coverage) as primary; AlphaVantage as registered fallback</td>
+          </tr>
+          <tr>
+            <td>LLM API costs exceed budget during development</td>
+            <td><span class="risk-pill risk-medium">Medium</span></td>
+            <td><span class="risk-pill risk-medium">Medium</span></td>
+            <td>Configurable provider via <code style="font-family:monospace;font-size:0.82rem;color:var(--accent)">.env</code>; use Claude Haiku for supervisor routing, full model only for synthesis</td>
+          </tr>
+          <tr>
+            <td>Hugging Face Spaces resource/memory limits</td>
+            <td><span class="risk-pill risk-medium">Medium</span></td>
+            <td><span class="risk-pill risk-low">Low</span></td>
+            <td>SQLite + in-memory cache fallback in <code style="font-family:monospace;font-size:0.82rem;color:var(--accent)">Dockerfile.hf</code>; single-container architecture avoids multi-service orchestration</td>
+          </tr>
+          <tr>
+            <td>RAG retrieval quality insufficient for financial queries</td>
+            <td><span class="risk-pill risk-low">Low</span></td>
+            <td><span class="risk-pill risk-medium">Medium</span></td>
+            <td>21 curated seed articles + query-time category filtering in ChromaDB; hybrid keyword + semantic search</td>
+          </tr>
+          <tr>
+            <td>LangGraph parallel agent race conditions on shared state</td>
+            <td><span class="risk-pill risk-low">Low</span></td>
+            <td><span class="risk-pill risk-high">High</span></td>
+            <td><code style="font-family:monospace;font-size:0.82rem;color:var(--accent)">Annotated[list, add]</code> reducer on <code style="font-family:monospace;font-size:0.82rem;color:var(--accent)">agent_results</code> field; no shared mutable state between agents</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── Section 6: Deployment ──────────────────────────────────────────── -->
+  <section id="deployment">
+    <div class="section-header">
+      <div class="section-number">6</div>
+      <h2>Deployment Targets</h2>
+    </div>
+
+    <div class="deploy-grid">
+
+      <div class="deploy-card">
+        <h3><span>🐳</span> Local Development <span class="env-tag">dev</span></h3>
+        <p style="font-size:0.84rem;color:var(--text-muted);margin-bottom:0.5rem;">
+          All services on a Docker bridge network. Postgres, Redis, API, and Celery workers start with a single command.
+        </p>
+        <div class="deploy-cmd">docker compose up</div>
+        <ul>
+          <li>Postgres 15 on port 5432</li>
+          <li>Redis 7 on port 6379</li>
+          <li>FastAPI + Uvicorn on port 8000</li>
+          <li>Celery worker (4 concurrency)</li>
+          <li>Hot-reload via volume mount</li>
+        </ul>
+      </div>
+
+      <div class="deploy-card">
+        <h3><span>🚀</span> Production <span class="env-tag">prod</span></h3>
+        <p style="font-size:0.84rem;color:var(--text-muted);margin-bottom:0.5rem;">
+          nginx reverse proxy in front of 4 Uvicorn workers. SSL termination at nginx, static files served directly.
+        </p>
+        <div class="deploy-cmd">docker compose -f docker-compose.prod.yml up</div>
+        <ul>
+          <li>nginx on ports 80/443</li>
+          <li>4 Uvicorn workers behind nginx</li>
+          <li>React SPA served as static files</li>
+          <li>Managed Postgres + Redis (external)</li>
+        </ul>
+      </div>
+
+      <div class="deploy-card">
+        <h3><span>🤗</span> Hugging Face Spaces <span class="env-tag">hf</span></h3>
+        <p style="font-size:0.84rem;color:var(--text-muted);margin-bottom:0.5rem;">
+          Single container on port 7860. SQLite replaces Postgres; in-memory dict replaces Redis for zero-dependency deploy.
+        </p>
+        <div class="deploy-cmd">Dockerfile.hf — port 7860</div>
+        <ul>
+          <li>SQLite persistence (no external DB)</li>
+          <li>In-memory cache fallback</li>
+          <li>README.md HF metadata block</li>
+          <li>Zero external service dependencies</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<!-- ── Footer ─────────────────────────────────────────────────────────── -->
+<footer>
+  <p>
+    <strong>Aurum</strong> — AI-Powered Financial Literacy Assistant
+  </p>
+  <p style="margin-top:0.4rem;">
+    © 2024 Kapil Manchanda. All rights reserved.
+    Confidential and proprietary.
+    Unauthorized use, reproduction, or distribution is strictly prohibited.
+  </p>
+</footer>
+
+<!-- ── Scripts ────────────────────────────────────────────────────────── -->
+<script>
+  // Theme toggle
+  const html       = document.documentElement;
+  const themeBtn   = document.getElementById('themeToggle');
+  const themeIcon  = document.getElementById('themeIcon');
+  const themeLabel = document.getElementById('themeLabel');
+
+  function applyTheme(theme) {
+    html.setAttribute('data-theme', theme);
+    if (theme === 'dark') {
+      themeIcon.textContent  = '☀️';
+      themeLabel.textContent = 'Light';
+    } else {
+      themeIcon.textContent  = '🌙';
+      themeLabel.textContent = 'Dark';
+    }
+    localStorage.setItem('aurum-theme', theme);
+  }
+
+  // Restore saved preference
+  const saved = localStorage.getItem('aurum-theme') || 'dark';
+  applyTheme(saved);
+
+  themeBtn.addEventListener('click', () => {
+    const current = html.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  // Mermaid init
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor:       '#d4a843',
+      primaryTextColor:   '#e6edf3',
+      primaryBorderColor: '#30363d',
+      lineColor:          '#8b949e',
+      secondaryColor:     '#161b22',
+      tertiaryColor:      '#0d1117',
+      background:         '#161b22',
+      mainBkg:            '#161b22',
+      nodeBorder:         '#30363d',
+      edgeLabelBackground:'#161b22',
+      titleColor:         '#d4a843',
+    },
+    flowchart: {
+      htmlLabels: true,
+      curve: 'basis',
+    },
+  });
+</script>
+
+</body>
+</html>
