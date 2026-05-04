@@ -161,30 +161,30 @@
   </div>
   <nav>
     <div class="nav-section">Overview</div>
-    <a class="nav-item active" onclick="scrollTo('overview')">What Is Aurum?</a>
-    <a class="nav-item" onclick="scrollTo('architecture')">System Architecture</a>
-    <a class="nav-item" onclick="scrollTo('data-flow')">Chat Data Flow</a>
+    <a class="nav-item active" onclick="navTo('overview')">What Is Aurum?</a>
+    <a class="nav-item" onclick="navTo('architecture')">System Architecture</a>
+    <a class="nav-item" onclick="navTo('data-flow')">Chat Data Flow</a>
 
     <div class="nav-section">Operations</div>
-    <a class="nav-item" onclick="scrollTo('quickstart')">Quick Start</a>
-    <a class="nav-item" onclick="scrollTo('env')">Environment Variables</a>
-    <a class="nav-item" onclick="scrollTo('llm')">LLM Providers</a>
-    <a class="nav-item" onclick="scrollTo('admin')">Admin Dashboard</a>
+    <a class="nav-item" onclick="navTo('quickstart')">Quick Start</a>
+    <a class="nav-item" onclick="navTo('env')">Environment Variables</a>
+    <a class="nav-item" onclick="navTo('llm')">LLM Providers</a>
+    <a class="nav-item" onclick="navTo('admin')">Admin Dashboard</a>
 
     <div class="nav-section">RAG Knowledge Base</div>
-    <a class="nav-item" onclick="scrollTo('rag-how')">How RAG Works</a>
-    <a class="nav-item" onclick="scrollTo('rag-content')">Current Content</a>
-    <a class="nav-item" onclick="scrollTo('rag-add')">Adding Documents</a>
-    <a class="nav-item" onclick="scrollTo('rag-categories')">Categories &amp; Routing</a>
-    <a class="nav-item" onclick="scrollTo('rag-ingest')">Running Ingest</a>
+    <a class="nav-item" onclick="navTo('rag-how')">How RAG Works</a>
+    <a class="nav-item" onclick="navTo('rag-content')">Current Content</a>
+    <a class="nav-item" onclick="navTo('rag-add')">Adding Documents</a>
+    <a class="nav-item" onclick="navTo('rag-categories')">Categories &amp; Routing</a>
+    <a class="nav-item" onclick="navTo('rag-ingest')">Running Ingest</a>
 
     <div class="nav-section">ChromaDB</div>
-    <a class="nav-item" onclick="scrollTo('chroma-inspect')">Inspecting the Store</a>
-    <a class="nav-item" onclick="scrollTo('chroma-manage')">Managing Documents</a>
+    <a class="nav-item" onclick="navTo('chroma-inspect')">Inspecting the Store</a>
+    <a class="nav-item" onclick="navTo('chroma-manage')">Managing Documents</a>
 
     <div class="nav-section">Reference</div>
-    <a class="nav-item" onclick="scrollTo('api')">API Endpoints</a>
-    <a class="nav-item" onclick="scrollTo('troubleshoot')">Troubleshooting</a>
+    <a class="nav-item" onclick="navTo('api')">API Endpoints</a>
+    <a class="nav-item" onclick="navTo('troubleshoot')">Troubleshooting</a>
   </nav>
   <div id="sidebar-footer">
     <div>v1.0 · May 2025</div>
@@ -1034,10 +1034,10 @@ docker compose exec api alembic current</code></pre>
     document.getElementById('theme-toggle').textContent = isDark ? '🌙 Dark' : '☀️ Light';
   }
 
-  function scrollTo(id) {
+  function navTo(id) {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     document.querySelectorAll('.nav-item').forEach(el => {
-      el.classList.toggle('active', el.getAttribute('onclick') === `scrollTo('${id}')`);
+      el.classList.toggle('active', el.getAttribute('onclick') === `navTo('${id}')`);
     });
   }
 
@@ -1048,7 +1048,7 @@ docker compose exec api alembic current</code></pre>
       if (e.isIntersecting) {
         const id = e.target.id;
         document.querySelectorAll('.nav-item').forEach(el => {
-          el.classList.toggle('active', el.getAttribute('onclick') === `scrollTo('${id}')`);
+          el.classList.toggle('active', el.getAttribute('onclick') === `navTo('${id}')`);
         });
       }
     });
