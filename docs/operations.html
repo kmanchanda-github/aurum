@@ -151,6 +151,11 @@
     #main { margin-left: 0; }
     .grid2, .grid3 { grid-template-columns: 1fr; }
   }
+  footer { margin-top: 60px; padding: 28px 32px; border-top: 1px solid var(--border);
+    background: var(--bg2); text-align: center; font-size: 12px; color: var(--text2); }
+  footer strong { color: var(--gold); }
+  footer a { color: var(--gold); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -1023,9 +1028,25 @@ docker compose exec postgres psql -U aurum -d aurum
 docker compose exec api alembic current</code></pre>
     </section>
 
-    <div style="height:60px"></div>
+    <div style="height:40px"></div>
   </div>
 </main>
+
+<footer>
+  <div style="margin-bottom:8px"><strong>Aurum — AI Finance Assistant</strong></div>
+  <div>© 2024 <strong>Kapil Manchanda</strong>. All rights reserved.</div>
+  <div style="margin-top:6px;font-size:11px">
+    Confidential and proprietary. Unauthorized use, reproduction, or distribution of this documentation
+    or the associated software, in whole or in part, is strictly prohibited without prior written permission.
+  </div>
+  <div style="margin-top:10px;font-size:11px">
+    Capstone project — Applied Agentic AI for SWEs &nbsp;|&nbsp;
+    <a href="index.html">Docs Home</a> &nbsp;|&nbsp;
+    <a href="plan.html">Project Plan</a> &nbsp;|&nbsp;
+    <a href="techstack.html">Tech Stack Guide</a> &nbsp;|&nbsp;
+    Built with FastAPI · LangGraph · React · ChromaDB · yfinance
+  </div>
+</footer>
 
 <script>
   function toggleTheme() {

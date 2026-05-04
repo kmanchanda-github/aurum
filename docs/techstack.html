@@ -169,6 +169,11 @@
     #sidebar { transform: translateX(-100%); }
     #main { margin-left: 0; }
   }
+  footer { margin-top: 60px; padding: 28px 32px; border-top: 1px solid var(--border);
+    background: var(--bg2); text-align: center; font-size: 12px; color: var(--text2); }
+  footer strong { color: var(--gold); }
+  footer a { color: var(--gold); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -181,37 +186,37 @@
   </div>
   <nav>
     <div class="nav-section">Overview</div>
-    <a class="nav-item active" onclick="scrollTo('intro')">Introduction</a>
+    <a class="nav-item active" onclick="navTo('intro')">Introduction</a>
     <div class="nav-section">AI &amp; Orchestration</div>
-    <a class="nav-item" onclick="scrollTo('langgraph')">LangGraph</a>
-    <a class="nav-item" onclick="scrollTo('langchain')">LangChain</a>
-    <a class="nav-item" onclick="scrollTo('llm')">LLM Providers</a>
+    <a class="nav-item" onclick="navTo('langgraph')">LangGraph</a>
+    <a class="nav-item" onclick="navTo('langchain')">LangChain</a>
+    <a class="nav-item" onclick="navTo('llm')">LLM Providers</a>
     <div class="nav-section">RAG &amp; Knowledge</div>
-    <a class="nav-item" onclick="scrollTo('chromadb')">ChromaDB</a>
-    <a class="nav-item" onclick="scrollTo('embeddings')">Embeddings</a>
+    <a class="nav-item" onclick="navTo('chromadb')">ChromaDB</a>
+    <a class="nav-item" onclick="navTo('embeddings')">Embeddings</a>
     <div class="nav-section">Backend</div>
-    <a class="nav-item" onclick="scrollTo('fastapi')">FastAPI</a>
-    <a class="nav-item" onclick="scrollTo('websockets')">WebSockets</a>
-    <a class="nav-item" onclick="scrollTo('sqlalchemy')">SQLAlchemy</a>
+    <a class="nav-item" onclick="navTo('fastapi')">FastAPI</a>
+    <a class="nav-item" onclick="navTo('websockets')">WebSockets</a>
+    <a class="nav-item" onclick="navTo('sqlalchemy')">SQLAlchemy</a>
     <div class="nav-section">Auth &amp; Security</div>
-    <a class="nav-item" onclick="scrollTo('auth')">JWT &amp; Auth</a>
-    <a class="nav-item" onclick="scrollTo('ratelimit')">Rate Limiting</a>
+    <a class="nav-item" onclick="navTo('auth')">JWT &amp; Auth</a>
+    <a class="nav-item" onclick="navTo('ratelimit')">Rate Limiting</a>
     <div class="nav-section">Data Storage</div>
-    <a class="nav-item" onclick="scrollTo('postgres')">PostgreSQL</a>
-    <a class="nav-item" onclick="scrollTo('redis')">Redis</a>
+    <a class="nav-item" onclick="navTo('postgres')">PostgreSQL</a>
+    <a class="nav-item" onclick="navTo('redis')">Redis</a>
     <div class="nav-section">Market Data</div>
-    <a class="nav-item" onclick="scrollTo('yfinance')">yfinance</a>
-    <a class="nav-item" onclick="scrollTo('adapters')">Adapter Registry</a>
+    <a class="nav-item" onclick="navTo('yfinance')">yfinance</a>
+    <a class="nav-item" onclick="navTo('adapters')">Adapter Registry</a>
     <div class="nav-section">Frontend</div>
-    <a class="nav-item" onclick="scrollTo('react')">React + Vite</a>
-    <a class="nav-item" onclick="scrollTo('shadcn')">shadcn/ui + Tailwind</a>
-    <a class="nav-item" onclick="scrollTo('recharts')">Recharts</a>
-    <a class="nav-item" onclick="scrollTo('tanstack')">TanStack Query</a>
+    <a class="nav-item" onclick="navTo('react')">React + Vite</a>
+    <a class="nav-item" onclick="navTo('shadcn')">shadcn/ui + Tailwind</a>
+    <a class="nav-item" onclick="navTo('recharts')">Recharts</a>
+    <a class="nav-item" onclick="navTo('tanstack')">TanStack Query</a>
     <div class="nav-section">Infrastructure</div>
-    <a class="nav-item" onclick="scrollTo('docker')">Docker Compose</a>
-    <a class="nav-item" onclick="scrollTo('alembic')">Alembic</a>
+    <a class="nav-item" onclick="navTo('docker')">Docker Compose</a>
+    <a class="nav-item" onclick="navTo('alembic')">Alembic</a>
     <div class="nav-section">Testing</div>
-    <a class="nav-item" onclick="scrollTo('pytest')">pytest</a>
+    <a class="nav-item" onclick="navTo('pytest')">pytest</a>
   </nav>
   <div id="sidebar-footer">
     <div>© 2024 Kapil Manchanda</div>
@@ -1270,8 +1275,24 @@ os.environ[<span class="str">"USE_IN_MEMORY_CACHE"</span>] = <span class="str">"
   </div><!-- /content -->
 </div><!-- /main -->
 
+<footer>
+  <div style="margin-bottom:8px"><strong>Aurum — AI Finance Assistant</strong></div>
+  <div>© 2024 <strong>Kapil Manchanda</strong>. All rights reserved.</div>
+  <div style="margin-top:6px;font-size:11px">
+    Confidential and proprietary. Unauthorized use, reproduction, or distribution of this documentation
+    or the associated software, in whole or in part, is strictly prohibited without prior written permission.
+  </div>
+  <div style="margin-top:10px;font-size:11px">
+    Capstone project — Applied Agentic AI for SWEs &nbsp;|&nbsp;
+    <a href="index.html">Docs Home</a> &nbsp;|&nbsp;
+    <a href="plan.html">Project Plan</a> &nbsp;|&nbsp;
+    <a href="operations.html">Operations Guide</a> &nbsp;|&nbsp;
+    Built with FastAPI · LangGraph · React · ChromaDB · yfinance
+  </div>
+</footer>
+
 <script>
-  function scrollTo(id) {
+  function navTo(id) {
     document.getElementById(id).scrollIntoView({behavior:'smooth'});
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     event.target.classList.add('active');
@@ -1299,7 +1320,7 @@ os.environ[<span class="str">"USE_IN_MEMORY_CACHE"</span>] = <span class="str">"
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         navItems.forEach(el => el.classList.remove('active'));
-        const active = document.querySelector(`.nav-item[onclick="scrollTo('${entry.target.id}')"]`);
+        const active = document.querySelector(`.nav-item[onclick="navTo('${entry.target.id}')"]`);
         if (active) active.classList.add('active');
       }
     });
