@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aurum — Data Sources & Tab Reference</title>
+<style>
+  :root[data-theme="dark"] {
+    --bg: #0f1117; --bg2: #161b27; --bg3: #1e2436; --bg4: #252c3f;
+    --border: #2d3654; --text: #e8eaf0; --text2: #9ba3c4; --text3: #6b7394;
+    --gold: #f0b429; --gold2: #ffd166;
+    --green: #34d399; --blue: #60a5fa; --purple: #a78bfa; --red: #f87171;
+    --cyan: #22d3ee; --orange: #fb923c; --pink: #f472b6;
+    --code-bg: #0d1117; --sidebar-w: 260px;
+  }
+  :root[data-theme="light"] {
+    --bg: #f8f9fc; --bg2: #ffffff; --bg3: #f0f2f8; --bg4: #e8ecf5;
+    --border: #d0d8ed; --text: #1a1f36; --text2: #4a5280; --text3: #8890b4;
+    --gold: #b07d0a; --gold2: #d4920c;
+    --green: #059669; --blue: #2563eb; --purple: #7c3aed; --red: #dc2626;
+    --cyan: #0891b2; --orange: #ea580c; --pink: #db2777;
+    --code-bg: #f0f2f8; --sidebar-w: 260px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg); color: var(--text); display: flex; min-height: 100vh;
+    font-size: 15px; line-height: 1.6; }
+
+  #sidebar { width: var(--sidebar-w); background: var(--bg2); border-right: 1px solid var(--border);
+    position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto;
+    display: flex; flex-direction: column; z-index: 100; }
+  #sidebar-header { padding: 20px 16px 16px; border-bottom: 1px solid var(--border); }
+  #sidebar-header h1 { font-size: 18px; font-weight: 700; color: var(--gold); }
+  #sidebar-header p { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  #sidebar nav { flex: 1; padding: 12px 0; }
+  .nav-section { padding: 8px 16px 4px; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); }
+  .nav-item { display: block; padding: 7px 16px; font-size: 13px; color: var(--text2);
+    text-decoration: none; border-left: 3px solid transparent; transition: all 0.15s; cursor: pointer; }
+  .nav-item:hover, .nav-item.active { color: var(--gold); border-left-color: var(--gold); background: var(--bg3); }
+  #sidebar-footer { padding: 12px 16px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text3); }
+  #sidebar-footer a { color: var(--gold); text-decoration: none; }
+
+  #main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; }
+  #topbar { position: sticky; top: 0; background: var(--bg2); border-bottom: 1px solid var(--border);
+    padding: 12px 32px; display: flex; align-items: center; justify-content: space-between; z-index: 50; }
+  #topbar-title { font-size: 14px; font-weight: 600; color: var(--text2); }
+  #theme-toggle { background: var(--bg3); border: 1px solid var(--border); color: var(--text2);
+    padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all 0.2s; }
+  #theme-toggle:hover { background: var(--bg4); color: var(--text); }
+
+  #content { padding: 40px 32px; max-width: 880px; flex: 1; }
+
+  .section { margin-bottom: 56px; scroll-margin-top: 80px; }
+  h2 { font-size: 22px; font-weight: 700; margin-bottom: 16px; padding-bottom: 10px;
+    border-bottom: 2px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  h3 { font-size: 15px; font-weight: 600; color: var(--gold); margin: 22px 0 10px; }
+  h4 { font-size: 13px; font-weight: 600; color: var(--text2); margin: 16px 0 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+  p { color: var(--text2); margin-bottom: 12px; }
+  ul, ol { color: var(--text2); padding-left: 20px; margin-bottom: 12px; }
+  li { margin-bottom: 5px; }
+  a { color: var(--gold); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  code { background: var(--code-bg); color: var(--cyan); padding: 2px 6px; border-radius: 4px;
+    font-family: 'SF Mono','Fira Code',monospace; font-size: 13px; border: 1px solid var(--border); }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 20px; overflow-x: auto; margin: 12px 0 16px; white-space: pre; }
+  pre code { background: none; border: none; padding: 0; font-size: 13px; color: var(--text); }
+
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px;
+    border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .badge-green  { background: rgba(52,211,153,0.12); color: var(--green);  border: 1px solid rgba(52,211,153,0.25); }
+  .badge-blue   { background: rgba(96,165,250,0.12); color: var(--blue);   border: 1px solid rgba(96,165,250,0.25); }
+  .badge-gold   { background: rgba(240,180,41,0.12); color: var(--gold);   border: 1px solid rgba(240,180,41,0.25); }
+  .badge-red    { background: rgba(248,113,113,0.12); color: var(--red);   border: 1px solid rgba(248,113,113,0.25); }
+  .badge-purple { background: rgba(167,139,250,0.12); color: var(--purple); border: 1px solid rgba(167,139,250,0.25); }
+  .badge-orange { background: rgba(251,146,60,0.12); color: var(--orange); border: 1px solid rgba(251,146,60,0.25); }
+  .badge-cyan   { background: rgba(34,211,238,0.12); color: var(--cyan);   border: 1px solid rgba(34,211,238,0.25); }
+  .badge-gray   { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+
+  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 13px; }
+  th { background: var(--bg3); color: var(--text); font-weight: 600; padding: 10px 14px;
+    text-align: left; border-bottom: 2px solid var(--border); }
+  td { padding: 9px 14px; border-bottom: 1px solid var(--border); color: var(--text2); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg3); }
+
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 12px; }
+  .card-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 6px;
+    display: flex; align-items: center; gap-8px; }
+  .card-body { font-size: 13px; color: var(--text2); }
+
+  .source-block { border-left: 3px solid var(--border); padding-left: 16px; margin: 12px 0; }
+  .source-block.live   { border-color: var(--green); }
+  .source-block.static { border-color: var(--blue); }
+  .source-block.ai     { border-color: var(--purple); }
+  .source-block.cached { border-color: var(--orange); }
+
+  .callout { border-radius: 8px; padding: 14px 16px; margin: 16px 0; font-size: 13px; border-left: 4px solid; }
+  .callout-info { background: rgba(96,165,250,0.08); border-color: var(--blue); color: var(--text2); }
+  .callout-warn { background: rgba(251,146,60,0.08); border-color: var(--orange); color: var(--text2); }
+  .callout-tip  { background: rgba(52,211,153,0.08); border-color: var(--green); color: var(--text2); }
+
+  .tab-summary { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin: 16px 0 24px; }
+  .tab-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .tab-card-icon { font-size: 20px; margin-bottom: 6px; }
+  .tab-card-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .tab-card-src { font-size: 12px; color: var(--text3); }
+
+  .flow-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 8px 0; font-size: 13px; color: var(--text2); }
+  .flow-arrow { color: var(--text3); }
+
+  footer { margin-top: 60px; padding: 28px 32px; border-top: 1px solid var(--border);
+    background: var(--bg2); text-align: center; font-size: 12px; color: var(--text2); }
+  footer strong { color: var(--gold); }
+  footer a { color: var(--gold); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  @media (max-width: 768px) {
+    #sidebar { transform: translateX(-100%); }
+    #main { margin-left: 0; }
+    .tab-summary { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<aside id="sidebar">
+  <div id="sidebar-header">
+    <h1>⚜️ Aurum</h1>
+    <p>Data Sources &amp; Tab Reference</p>
+  </div>
+  <nav>
+    <div class="nav-section">Overview</div>
+    <a class="nav-item active" onclick="navTo('overview')">All Tabs at a Glance</a>
+    <a class="nav-item" onclick="navTo('caching')">Caching Layer</a>
+
+    <div class="nav-section">Tabs</div>
+    <a class="nav-item" onclick="navTo('chat')">💬 Chat</a>
+    <a class="nav-item" onclick="navTo('market')">📈 Market</a>
+    <a class="nav-item" onclick="navTo('portfolio')">📊 Portfolio</a>
+    <a class="nav-item" onclick="navTo('goals')">🎯 Goals</a>
+    <a class="nav-item" onclick="navTo('news')">📰 News</a>
+    <a class="nav-item" onclick="navTo('settings')">⚙️ Settings</a>
+    <a class="nav-item" onclick="navTo('tax')">🧾 Tax (Chat)</a>
+
+    <div class="nav-section">Extending</div>
+    <a class="nav-item" onclick="navTo('add-market')">Add Market Source</a>
+    <a class="nav-item" onclick="navTo('add-news')">Add News Source</a>
+  </nav>
+  <div id="sidebar-footer">
+    <div style="margin-bottom:6px">v1.0 · May 2025</div>
+    <a href="index.html">← Docs Home</a>
+    <div style="margin-top:4px"><a href="techstack.html">Tech Stack Guide →</a></div>
+    <div style="margin-top:4px"><a href="operations.html">Operations Guide →</a></div>
+  </div>
+</aside>
+
+<main id="main">
+  <div id="topbar">
+    <span id="topbar-title">⚜️ Aurum — Data Sources &amp; Tab Reference</span>
+    <button id="theme-toggle" onclick="toggleTheme()">☀️ Light</button>
+  </div>
+  <div id="content">
+
+    <!-- ═══════════════════════════════════ OVERVIEW -->
+    <section class="section" id="overview">
+      <h2>🗂️ All Tabs at a Glance</h2>
+      <p>Each tab in Aurum pulls from a different combination of live external APIs, local Postgres storage, AI inference, and a built-in knowledge base. This document explains exactly what each tab does and where its data comes from.</p>
+
+      <div class="tab-summary">
+        <div class="tab-card">
+          <div class="tab-card-icon">💬</div>
+          <div class="tab-card-name">Chat</div>
+          <div class="tab-card-src">LLM (OpenAI/Anthropic/…) · ChromaDB RAG · yfinance</div>
+        </div>
+        <div class="tab-card">
+          <div class="tab-card-icon">📈</div>
+          <div class="tab-card-name">Market</div>
+          <div class="tab-card-src">yfinance (primary) · Alpha Vantage (optional)</div>
+        </div>
+        <div class="tab-card">
+          <div class="tab-card-icon">📊</div>
+          <div class="tab-card-name">Portfolio</div>
+          <div class="tab-card-src">PostgreSQL (manual entry only)</div>
+        </div>
+        <div class="tab-card">
+          <div class="tab-card-icon">🎯</div>
+          <div class="tab-card-name">Goals</div>
+          <div class="tab-card-src">PostgreSQL · Monte Carlo (NumPy, no external data)</div>
+        </div>
+        <div class="tab-card">
+          <div class="tab-card-icon">📰</div>
+          <div class="tab-card-name">News</div>
+          <div class="tab-card-src">Google News RSS (via pygooglenews / feedparser)</div>
+        </div>
+        <div class="tab-card">
+          <div class="tab-card-icon">⚙️</div>
+          <div class="tab-card-name">Settings</div>
+          <div class="tab-card-src">PostgreSQL (user preferences)</div>
+        </div>
+      </div>
+
+      <h3>Data Source Types</h3>
+      <table>
+        <tr><th>Type</th><th>Description</th><th>Used By</th></tr>
+        <tr>
+          <td><span class="badge badge-green">Live API</span></td>
+          <td>Real-time fetch from external service, cached in Redis</td>
+          <td>Market quotes, indices, news feed</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-purple">AI Inference</span></td>
+          <td>LLM call (OpenAI, Anthropic, etc.) — billed per token</td>
+          <td>Chat responses, tax explanations, supervisor routing</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-blue">Knowledge Base</span></td>
+          <td>ChromaDB vector store, pre-ingested markdown articles</td>
+          <td>Chat RAG context</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-gold">Database</span></td>
+          <td>PostgreSQL — user-owned data, persisted across sessions</td>
+          <td>Portfolio holdings, goals, conversation history, traces</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-gray">Computed</span></td>
+          <td>Local math/simulation, no external dependency</td>
+          <td>Goal projections (Monte Carlo)</td>
+        </tr>
+      </table>
+    </section>
+
+    <!-- ═══════════════════════════════════ CACHING -->
+    <section class="section" id="caching">
+      <h2>⚡ Caching Layer</h2>
+      <p>All live API responses are cached in Redis to minimise external API calls and keep UI response times fast. Cache is per-symbol or per-query, keyed by a SHA256 hash.</p>
+
+      <table>
+        <tr><th>Data Type</th><th>TTL</th><th>Config Key</th><th>Rationale</th></tr>
+        <tr><td>Stock quote</td><td>60 seconds</td><td><code>CACHE_TTL_QUOTE</code></td><td>Near-real-time for chat agent use</td></tr>
+        <tr><td>Price history</td><td>5 minutes</td><td><code>CACHE_TTL_HISTORY</code></td><td>Charts don't need tick-level freshness</td></tr>
+        <tr><td>Index prices</td><td>1 hour</td><td><code>CACHE_TTL_INDEX</code></td><td>Dashboard overview, refresh on page load is fine</td></tr>
+        <tr><td>News feed</td><td>15 minutes</td><td><code>CACHE_TTL_NEWS</code></td><td>Google News RSS rate limits; content doesn't change per-minute</td></tr>
+      </table>
+
+      <p>Override any TTL by setting the corresponding env var in <code>.env</code>. To disable Redis and use an in-process cache instead (e.g. HF Spaces), set <code>USE_IN_MEMORY_CACHE=true</code>.</p>
+    </section>
+
+    <!-- ═══════════════════════════════════ CHAT -->
+    <section class="section" id="chat">
+      <h2>💬 Chat Tab</h2>
+      <p>The most complex tab. Every message runs through a LangGraph multi-agent pipeline. Three separate data sources contribute to each response.</p>
+
+      <h3>Source 1 — LLM Inference <span class="badge badge-purple">AI Inference</span></h3>
+      <div class="source-block ai">
+        <p><strong>What:</strong> Every agent node in the graph calls the configured LLM to generate its response. The supervisor also calls the LLM to decide routing.</p>
+        <p><strong>Provider:</strong> Set by <code>LLM_PROVIDER</code> + <code>LLM_MODEL</code> in <code>.env</code>. Supported: OpenAI, Anthropic, Google, AWS Bedrock.</p>
+        <p><strong>Cost:</strong> Billed per token by the provider. Visible in Admin → Conversations trace.</p>
+        <p><strong>No caching</strong> — every LLM call goes to the provider API.</p>
+      </div>
+
+      <h3>Source 2 — RAG Knowledge Base <span class="badge badge-blue">Knowledge Base</span></h3>
+      <div class="source-block static">
+        <p><strong>What:</strong> 21 pre-written educational articles ingested into ChromaDB as vector embeddings. Retrieved by cosine similarity on the user's query, filtered to the categories the supervisor selects.</p>
+        <p><strong>Where the content came from:</strong> Written as original educational content when the project was built — general personal finance concepts (DCA, index funds, capital gains, Roth IRA, etc.). No external URLs were scraped. All <code>source_url</code> fields are empty.</p>
+        <p><strong>Collection:</strong> <code>finance_kb</code> in ChromaDB. Embedding model: ChromaDB default (<code>all-MiniLM-L6-v2</code>, runs locally).</p>
+        <p><strong>How to add content:</strong> See the <a href="operations.html">Operations Guide → Adding Documents</a>.</p>
+      </div>
+
+      <h3>Source 3 — Live Market Data <span class="badge badge-green">Live API</span></h3>
+      <div class="source-block live">
+        <p><strong>What:</strong> The <code>market_agent</code> calls <code>registry.get_quote()</code> for real-time prices when the user's query involves current market data.</p>
+        <p><strong>Provider:</strong> yfinance (primary). Alpha Vantage if configured and yfinance fails.</p>
+        <p><strong>Cache:</strong> 60-second Redis TTL per symbol.</p>
+      </div>
+
+      <h3>Agent Pipeline</h3>
+      <div class="flow-row">
+        <span class="badge badge-cyan">User message</span>
+        <span class="flow-arrow">→</span>
+        <span class="badge badge-purple">Supervisor (LLM)</span>
+        <span class="flow-arrow">→ routes to →</span>
+        <span class="badge badge-blue">RAG retrieval</span>
+        <span class="flow-arrow">+</span>
+        <span class="badge badge-purple">Agent(s) (LLM)</span>
+        <span class="flow-arrow">→</span>
+        <span class="badge badge-purple">Synthesizer (LLM)</span>
+        <span class="flow-arrow">→</span>
+        <span class="badge badge-gold">Persist to DB</span>
+      </div>
+
+      <h3>Agents &amp; What They Do</h3>
+      <table>
+        <tr><th>Agent</th><th>Triggered When</th><th>External Data Used</th></tr>
+        <tr><td><code>qa</code></td><td>General finance education questions</td><td>RAG knowledge base</td></tr>
+        <tr><td><code>portfolio</code></td><td>Questions about the user's holdings</td><td>PostgreSQL (user's holdings)</td></tr>
+        <tr><td><code>market</code></td><td>Price, index, or market data questions</td><td>yfinance live quotes (cached 60s)</td></tr>
+        <tr><td><code>goals</code></td><td>Goal planning or progress questions</td><td>PostgreSQL (user's goals)</td></tr>
+        <tr><td><code>news</code></td><td>Financial news or current events</td><td>Google News RSS (cached 15min)</td></tr>
+        <tr><td><code>tax</code></td><td>Tax strategy or account questions</td><td>RAG knowledge base (tax category)</td></tr>
+      </table>
+
+      <div class="callout callout-info">
+        <strong>Disclaimer:</strong> All chat responses include a disclaimer injected by the <code>synthesizer</code> agent:
+        <em>"This information is for educational purposes only and does not constitute personalized financial advice."</em>
+        This text is configurable in <code>config.yaml → guardrails.disclaimer_text</code>.
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════ MARKET -->
+    <section class="section" id="market">
+      <h2>📈 Market Tab</h2>
+      <p>Real-time and historical price data for stocks, ETFs, and market indices. Uses an adapter registry so you can add or swap data providers without changing the API routes.</p>
+
+      <h3>Primary Source — yfinance <span class="badge badge-green">Live API</span></h3>
+      <div class="source-block live">
+        <p><strong>Library:</strong> <code>yfinance</code> — an unofficial Python wrapper around Yahoo Finance's data endpoints.</p>
+        <p><strong>API key required:</strong> No. Free to use, no registration.</p>
+        <p><strong>Data available:</strong> Real-time quotes (15-min delayed for most exchanges), full OHLCV history (1d to max), 52-week high/low, market cap, 3-month average volume, symbol search.</p>
+        <p><strong>Limitations:</strong> Unofficial API — Yahoo Finance can change endpoints without notice. Rate limits are not published but throttling can occur under heavy load. Not suitable for high-frequency trading data.</p>
+        <p><strong>Config:</strong> Enabled by default in <code>config.yaml</code>. Priority: 10 (lowest number = highest priority).</p>
+      </div>
+
+      <h3>Secondary Source — Alpha Vantage <span class="badge badge-green">Live API</span></h3>
+      <div class="source-block live">
+        <p><strong>API key required:</strong> Yes — <code>ALPHA_VANTAGE_API_KEY</code> in <code>.env</code>. Free tier: 25 requests/day. Premium tiers available.</p>
+        <p><strong>Data available:</strong> Real-time quotes, daily/weekly OHLCV history, fundamental data.</p>
+        <p><strong>Status:</strong> <strong>Disabled by default</strong> (<code>enabled: false</code> in <code>config.yaml</code>). Used as fallback if yfinance fails and the key is set.</p>
+        <p><strong>Enable it:</strong> Set <code>ALPHA_VANTAGE_API_KEY=your_key</code> in <code>.env</code> and flip <code>alpha_vantage.enabled: true</code> in <code>config.yaml</code>.</p>
+        <p><strong>Free tier sign-up:</strong> <a href="https://www.alphavantage.co/support/#api-key" target="_blank">alphavantage.co</a></p>
+      </div>
+
+      <h3>Configured Indices</h3>
+      <p>The indices shown on the market overview are set in <code>config.yaml → indices</code>:</p>
+      <table>
+        <tr><th>Symbol</th><th>Index</th><th>Notes</th></tr>
+        <tr><td><code>^GSPC</code></td><td>S&amp;P 500</td><td>US large-cap benchmark</td></tr>
+        <tr><td><code>^NDX</code></td><td>Nasdaq 100</td><td>Top 100 non-financial Nasdaq companies</td></tr>
+        <tr><td><code>^DJI</code></td><td>Dow Jones Industrial Average</td><td>30 large-cap US stocks</td></tr>
+        <tr><td><code>^VIX</code></td><td>CBOE Volatility Index</td><td>"Fear gauge" — 30-day implied volatility of S&amp;P 500</td></tr>
+      </table>
+      <p>Add or remove indices by editing the <code>indices</code> list in <code>config.yaml</code> and restarting the API. Any symbol supported by yfinance works.</p>
+
+      <h3>Market Movers</h3>
+      <div class="callout callout-warn">
+        The <strong>movers</strong> endpoint (<code>GET /api/market/movers</code>) does not use a real gainers/losers screener. It fetches live quotes for a hardcoded list of 8 popular symbols (AAPL, MSFT, NVDA, GOOGL, AMZN, META, TSLA, JPM) and sorts them by <code>change_pct</code>. This is a placeholder — true market-wide screeners require a premium data subscription (e.g. Polygon.io, Finnhub, or Alpha Vantage premium).
+      </div>
+
+      <h3>Caching</h3>
+      <table>
+        <tr><th>Endpoint</th><th>TTL</th></tr>
+        <tr><td><code>GET /api/market/quote/{symbol}</code></td><td>60 seconds</td></tr>
+        <tr><td><code>GET /api/market/history/{symbol}</code></td><td>5 minutes</td></tr>
+        <tr><td><code>GET /api/market/indices</code></td><td>1 hour</td></tr>
+      </table>
+    </section>
+
+    <!-- ═══════════════════════════════════ PORTFOLIO -->
+    <section class="section" id="portfolio">
+      <h2>📊 Portfolio Tab</h2>
+      <p>Tracks the user's investment holdings. All data is <strong>manually entered</strong> — there is no brokerage integration or automatic import.</p>
+
+      <h3>Data Source — PostgreSQL <span class="badge badge-gold">Database</span></h3>
+      <div class="source-block static">
+        <p><strong>Tables:</strong> <code>portfolios</code> (one per user, named), <code>holdings</code> (symbol, quantity, cost basis per portfolio).</p>
+        <p><strong>What you enter:</strong> Ticker symbol, number of shares/units, cost basis (average purchase price). Optionally: asset class label.</p>
+        <p><strong>Live prices:</strong> The portfolio detail endpoint attempts to enrich holdings with live prices, but the current implementation returns cost-basis totals only (live price enrichment is a pending enhancement). The <code>portfolio_agent</code> in Chat does call yfinance for live prices when analysing your holdings via AI.</p>
+      </div>
+
+      <h3>No External Brokerage Integration</h3>
+      <div class="callout callout-info">
+        Aurum does not connect to Robinhood, Schwab, Fidelity, or any other brokerage. To add holdings, enter them manually on the Portfolio tab. If you want brokerage import in the future, the architecture supports it via new adapter in <code>src/adapters/</code>.
+      </div>
+
+      <h3>What the Portfolio Agent Sees (in Chat)</h3>
+      <p>When you ask a portfolio question in Chat, the <code>portfolio_agent</code> reads your holdings from Postgres, then calls yfinance to get current prices, calculates gain/loss, and passes this context to the LLM. The LLM response is AI-generated analysis, not a guaranteed calculation.</p>
+    </section>
+
+    <!-- ═══════════════════════════════════ GOALS -->
+    <section class="section" id="goals">
+      <h2>🎯 Goals Tab</h2>
+      <p>Savings goal tracker with Monte Carlo projection. No external data — entirely self-contained.</p>
+
+      <h3>Data Source — PostgreSQL <span class="badge badge-gold">Database</span></h3>
+      <div class="source-block static">
+        <p><strong>Table:</strong> <code>goals</code> — stores goal name, type, target amount, current amount, monthly contribution, target date, and risk tolerance.</p>
+        <p><strong>Goal types supported:</strong> retirement, house, emergency fund, college, custom.</p>
+      </div>
+
+      <h3>Projection Engine — Monte Carlo Simulation <span class="badge badge-gray">Computed</span></h3>
+      <div class="source-block static">
+        <p><strong>What it does:</strong> Runs 1,000 simulated paths of your savings over a chosen time horizon using randomly sampled monthly returns, then reports p10/p50/p90 percentiles and a probability-of-success score.</p>
+        <p><strong>Library:</strong> NumPy (<code>np.random.default_rng</code>). No external API.</p>
+        <p><strong>Assumptions baked into the code</strong> — these are not sourced from any external model:</p>
+      </div>
+      <table>
+        <tr><th>Risk Profile</th><th>Annual Return</th><th>Annual Volatility</th><th>Based on</th></tr>
+        <tr><td><strong>Conservative</strong></td><td>5%</td><td>8%</td><td>Bond-heavy portfolio approximation</td></tr>
+        <tr><td><strong>Moderate</strong></td><td>7%</td><td>12%</td><td>60/40 stock-bond blend approximation</td></tr>
+        <tr><td><strong>Aggressive</strong></td><td>10%</td><td>18%</td><td>Equity-heavy portfolio approximation</td></tr>
+      </table>
+      <div class="callout callout-warn">
+        <strong>These return/volatility assumptions are hardcoded estimates</strong>, not market forecasts. They do not update with market conditions. Real financial planning tools use forward-looking models or historical calibration. Treat projections as illustrative only.
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════ NEWS -->
+    <section class="section" id="news">
+      <h2>📰 News Tab</h2>
+      <p>Financial news feed powered by Google News RSS.</p>
+
+      <h3>Source — Google News RSS <span class="badge badge-green">Live API</span></h3>
+      <div class="source-block live">
+        <p><strong>Library:</strong> <code>pygooglenews</code> — a Python wrapper around the Google News RSS feed. Falls back to direct <code>feedparser</code> if the library fails.</p>
+        <p><strong>API key required:</strong> No. Google News RSS is publicly accessible.</p>
+        <p><strong>What it returns:</strong> Article titles, URLs, publication timestamps, source name (e.g. "Reuters", "CNBC", "WSJ"), and a short summary snippet.</p>
+        <p><strong>Important:</strong> Aurum receives metadata from Google's aggregator — not the full article text. Clicking a headline opens the original publisher's page. Google News does not publish which outlets it indexes; coverage varies.</p>
+        <p><strong>Language/Region:</strong> English / United States (configurable in <code>config.yaml → news_sources.pygooglenews</code>).</p>
+        <p><strong>Cache:</strong> 15 minutes (Redis). The same query will not re-hit Google News within that window.</p>
+      </div>
+
+      <h3>Default Search Query</h3>
+      <p>If no <code>?query=</code> param is passed, the API defaults to <code>"financial markets investing"</code>. The News tab UI passes this default. You can search for specific topics (e.g. <code>"Apple earnings"</code>, <code>"Federal Reserve interest rates"</code>) by changing the query parameter.</p>
+
+      <h3>Article Limit</h3>
+      <p>Up to 30 articles per request (default: 10). Set via <code>?limit=N</code> on <code>GET /api/news</code>.</p>
+
+      <h3>Content Provenance</h3>
+      <p>Articles are aggregated by Google from thousands of publishers. Aurum does not verify, curate, or filter content beyond what Google News returns. Source quality depends entirely on what Google's algorithm surfaces for the given query.</p>
+
+      <div class="callout callout-tip">
+        <strong>Custom queries:</strong> The News tab currently uses the default query for all users. To support per-user topic filtering (e.g. follow specific tickers), pass <code>?query=AAPL+earnings</code> to <code>GET /api/news</code> and update the UI to expose a search box.
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════ SETTINGS -->
+    <section class="section" id="settings">
+      <h2>⚙️ Settings Tab</h2>
+      <p>User preferences stored in PostgreSQL. No external data sources.</p>
+
+      <h3>Data Source — PostgreSQL <span class="badge badge-gold">Database</span></h3>
+      <div class="source-block static">
+        <p><strong>Table:</strong> <code>user_settings</code> — one row per user, lazy-created on first access.</p>
+      </div>
+
+      <table>
+        <tr><th>Setting</th><th>Default</th><th>Description</th></tr>
+        <tr><td><code>market_adapter_priority</code></td><td><code>["yfinance"]</code></td><td>Order in which market adapters are tried</td></tr>
+        <tr><td><code>news_adapter_priority</code></td><td><code>["pygooglenews"]</code></td><td>Order in which news adapters are tried</td></tr>
+        <tr><td><code>preferred_currency</code></td><td><code>USD</code></td><td>Display currency (informational; conversion not yet implemented)</td></tr>
+        <tr><td><code>watchlist</code></td><td><code>[]</code></td><td>List of ticker symbols for the watchlist widget</td></tr>
+      </table>
+
+      <h3>Adapter Health Check</h3>
+      <p><code>GET /api/settings/adapters/health</code> calls <code>health_check()</code> on each registered market adapter and returns response latency in milliseconds. Useful for diagnosing whether yfinance or Alpha Vantage is reachable.</p>
+    </section>
+
+    <!-- ═══════════════════════════════════ TAX -->
+    <section class="section" id="tax">
+      <h2>🧾 Tax (via Chat)</h2>
+      <p>Tax education is available in two ways: through the main Chat pipeline (the <code>tax_agent</code>) and through a standalone <code>/api/tax</code> endpoint that some UI components call directly.</p>
+
+      <h3>Static Topic List</h3>
+      <div class="source-block static">
+        <p><strong>Source:</strong> Hardcoded in <code>src/api/routes/tax.py</code>. 10 pre-defined topics.</p>
+      </div>
+      <table>
+        <tr><th>Topic ID</th><th>Label</th><th>Category</th></tr>
+        <tr><td><code>capital_gains</code></td><td>Capital Gains Tax</td><td>tax</td></tr>
+        <tr><td><code>roth_ira</code></td><td>Roth IRA</td><td>accounts</td></tr>
+        <tr><td><code>traditional_ira</code></td><td>Traditional IRA</td><td>accounts</td></tr>
+        <tr><td><code>401k</code></td><td>401(k) Plans</td><td>accounts</td></tr>
+        <tr><td><code>hsa</code></td><td>Health Savings Account (HSA)</td><td>accounts</td></tr>
+        <tr><td><code>tax_loss_harvesting</code></td><td>Tax-Loss Harvesting</td><td>strategy</td></tr>
+        <tr><td><code>dividend_tax</code></td><td>Dividend Taxation</td><td>tax</td></tr>
+        <tr><td><code>wash_sale</code></td><td>Wash Sale Rule</td><td>rules</td></tr>
+        <tr><td><code>step_up_basis</code></td><td>Step-Up in Basis</td><td>rules</td></tr>
+        <tr><td><code>required_minimum</code></td><td>Required Minimum Distributions (RMDs)</td><td>rules</td></tr>
+      </table>
+
+      <h3>Tax Explanation Endpoint <span class="badge badge-purple">AI Inference</span></h3>
+      <div class="source-block ai">
+        <p><strong>Endpoint:</strong> <code>POST /api/tax/explain</code></p>
+        <p><strong>What it does:</strong> Calls the LLM directly (not via LangGraph) with a focused educational system prompt. Returns a 3–5 paragraph explanation plus the standard disclaimer.</p>
+        <p><strong>Temperature:</strong> 0.2 (lower than the main chat pipeline) for more deterministic, factual responses.</p>
+        <p><strong>Not backed by RAG</strong> — this endpoint does not query ChromaDB. For RAG-grounded tax answers, use the main Chat tab.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════ ADD MARKET -->
+    <section class="section" id="add-market">
+      <h2>➕ Adding a Market Data Source</h2>
+      <p>The adapter registry pattern makes it straightforward to add new providers.</p>
+
+      <h3>Step 1 — Create the adapter</h3>
+      <pre><code><span style="color:#546e7a"># src/adapters/market/mybroker_adapter.py</span>
+from src.adapters.base import MarketDataAdapter, Quote
+
+class MyBrokerAdapter(MarketDataAdapter):
+    name = "mybroker"
+    capabilities = {"quote", "history"}
+
+    async def get_quote(self, symbol: str) -> Quote:
+        <span style="color:#546e7a"># ... call your API ...</span>
+        return Quote(symbol=symbol, price=..., ...)
+
+    async def get_history(self, symbol, period, interval):
+        <span style="color:#546e7a"># ...</span></code></pre>
+
+      <h3>Step 2 — Register it in config.yaml</h3>
+      <pre><code>data_sources:
+  mybroker:
+    enabled: true
+    priority: 5          <span style="color:#546e7a"># lower = higher priority than yfinance (10)</span>
+    api_key: ${MYBROKER_API_KEY}</code></pre>
+
+      <h3>Step 3 — Wire it in registry.py</h3>
+      <pre><code><span style="color:#546e7a"># In build_registry() in src/adapters/registry.py</span>
+if ds.get("mybroker", {}).get("enabled"):
+    from src.adapters.market.mybroker_adapter import MyBrokerAdapter
+    registry.register_market(MyBrokerAdapter(), priority=ds["mybroker"]["priority"])</code></pre>
+
+      <p>The registry automatically falls through to the next adapter if the primary one raises an exception.</p>
+    </section>
+
+    <!-- ═══════════════════════════════════ ADD NEWS -->
+    <section class="section" id="add-news">
+      <h2>➕ Adding a News Source</h2>
+      <p>The same adapter pattern applies to news. Good free/freemium sources to add:</p>
+
+      <table>
+        <tr><th>Service</th><th>Free Tier</th><th>Key Feature</th></tr>
+        <tr><td>NewsAPI</td><td>100 req/day</td><td>Filterable by category, language, source domain</td></tr>
+        <tr><td>Finnhub</td><td>60 req/min</td><td>Company-specific news by ticker symbol</td></tr>
+        <tr><td>Polygon.io</td><td>Limited</td><td>Real-time ticker news, SEC filings</td></tr>
+        <tr><td>RSS (any)</td><td>Free</td><td>Custom feed for any publisher that offers RSS</td></tr>
+      </table>
+
+      <h3>Step 1 — Create the adapter</h3>
+      <pre><code><span style="color:#546e7a"># src/adapters/news/newsapi_adapter.py</span>
+from src.adapters.base import NewsAdapter, NewsItem
+
+class NewsAPIAdapter(NewsAdapter):
+    name = "newsapi"
+
+    async def fetch(self, query, since=None, limit=10) -> list[NewsItem]:
+        <span style="color:#546e7a"># call https://newsapi.org/v2/everything?q=query&apiKey=...</span>
+        ...</code></pre>
+
+      <h3>Step 2 — Add to config.yaml</h3>
+      <pre><code>news_sources:
+  pygooglenews:
+    enabled: true
+    language: en
+    country: US
+  newsapi:
+    enabled: true          <span style="color:#546e7a"># will run in parallel / as fallback</span></code></pre>
+
+      <h3>Step 3 — Register in registry.py</h3>
+      <pre><code><span style="color:#546e7a"># In build_registry()</span>
+if ns.get("newsapi", {}).get("enabled"):
+    from src.adapters.news.newsapi_adapter import NewsAPIAdapter
+    registry.register_news(NewsAPIAdapter(), priority=20)</code></pre>
+    </section>
+
+    <div style="height:40px"></div>
+  </div>
+
+  <footer>
+    <div style="margin-bottom:8px"><strong>Aurum — AI Finance Assistant</strong></div>
+    <div>© 2024 <strong>Kapil Manchanda</strong>. All rights reserved.</div>
+    <div style="margin-top:6px;font-size:11px">
+      Confidential and proprietary. Unauthorized use, reproduction, or distribution of this documentation
+      or the associated software, in whole or in part, is strictly prohibited without prior written permission.
+    </div>
+    <div style="margin-top:10px;font-size:11px">
+      Capstone project — Applied Agentic AI for SWEs &nbsp;|&nbsp;
+      <a href="index.html">← Home</a> &nbsp;|&nbsp;
+      <a href="operations.html">Operations Guide</a> &nbsp;|&nbsp;
+      <a href="techstack.html">Tech Stack Guide</a> &nbsp;|&nbsp;
+      Built with FastAPI · LangGraph · React · ChromaDB · yfinance
+    </div>
+  </footer>
+</main>
+
+<script>
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-toggle').textContent = isDark ? '🌙 Dark' : '☀️ Light';
+    localStorage.setItem('aurum-theme', isDark ? 'light' : 'dark');
+  }
+  const saved = localStorage.getItem('aurum-theme');
+  if (saved) {
+    document.documentElement.setAttribute('data-theme', saved);
+    document.getElementById('theme-toggle').textContent = saved === 'dark' ? '☀️ Light' : '🌙 Dark';
+  }
+
+  function navTo(id) {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.querySelectorAll('.nav-item').forEach(el =>
+      el.classList.toggle('active', el.getAttribute('onclick') === `navTo('${id}')`)
+    );
+  }
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const id = e.target.id;
+        document.querySelectorAll('.nav-item').forEach(el =>
+          el.classList.toggle('active', el.getAttribute('onclick') === `navTo('${id}')`)
+        );
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  document.querySelectorAll('.section').forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
