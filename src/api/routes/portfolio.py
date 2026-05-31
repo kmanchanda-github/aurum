@@ -91,6 +91,39 @@ async def get_portfolio(
     )
 
 
+@router.delete("/{portfolio_id}", status_code=204)
+async def delete_portfolio(
+    portfolio_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> None:
+    result = await db.execute(
+        select(Portfolio).where(Portfolio.id == portfolio_id, Portfolio.user_id == user.id)
+    )
+    portfolio = result.scalar_one_or_none()
+    if not portfolio:
+        raise HTTPException(404, "Portfolio not found")
+    await db.delete(portfolio)
+    await db.commit()
+
+
+@router.get("/{portfolio_id}/holdings", response_model=list[HoldingOut])
+async def list_holdings(
+    portfolio_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> list[HoldingOut]:
+    result = await db.execute(
+        select(Portfolio).where(Portfolio.id == portfolio_id, Portfolio.user_id == user.id)
+    )
+    if not result.scalar_one_or_none():
+        raise HTTPException(404, "Portfolio not found")
+    holdings_result = await db.execute(
+        select(Holding).where(Holding.portfolio_id == portfolio_id)
+    )
+    return [HoldingOut.model_validate(h) for h in holdings_result.scalars()]
+
+
 @router.post("/{portfolio_id}/holdings", response_model=HoldingOut, status_code=201)
 async def add_holding(
     portfolio_id: str,

@@ -42,9 +42,11 @@ def test_get_single_portfolio(client, auth_headers, portfolio_id):
     assert resp.json()["id"] == portfolio_id
 
 
-def test_get_other_users_portfolio_returns_404(client, unique_email, portfolio_id):
-    # Create a second user
-    resp = client.post("/api/auth/register", json={"email": unique_email, "password": "OtherPass1!"})
+def test_get_other_users_portfolio_returns_404(client, portfolio_id):
+    import uuid
+    # Use a fresh email — unique_email is shared with the portfolio_id fixture's user
+    other_email = f"other_{uuid.uuid4().hex[:8]}@test.com"
+    resp = client.post("/api/auth/register", json={"email": other_email, "password": "OtherPass1!"})
     other_token = resp.json()["access_token"]
     other_headers = {"Authorization": f"Bearer {other_token}"}
 

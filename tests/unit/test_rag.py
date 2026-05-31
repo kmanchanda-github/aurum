@@ -215,3 +215,74 @@ def test_chroma_store_multi_category_filter():
     categories_returned = {r.metadata["category"] for r in results}
     assert "market" not in categories_returned
     assert len(categories_returned) <= 2
+
+
+# ── ingest() function ─────────────────────────────────────────────────────────
+
+
+def test_ingest_processes_markdown_files(tmp_path):
+    """ingest() reads .md files and calls store.add_documents."""
+    from unittest.mock import MagicMock, patch
+    import textwrap
+
+    seed = tmp_path / "investing"
+    seed.mkdir()
+    (seed / "etfs.md").write_text(textwrap.dedent("""\
+        ---
+        source_title: ETFs Explained
+        category: investing
+        source_url: ""
+        ---
+        # ETFs
+        ETFs trade on exchanges like stocks.
+    """))
+
+    mock_store = MagicMock()
+    mock_store.count.return_value = 3
+
+    with patch("src.rag.chroma_store.ChromaStore", return_value=mock_store):
+        from src.rag.ingest import ingest
+        ingest(str(tmp_path), clear=False)
+
+    mock_store.add_documents.assert_called_once()
+    docs_added = mock_store.add_documents.call_args[0][0]
+    assert len(docs_added) >= 1
+    assert any("ETFs" in d.content or "exchanges" in d.content for d in docs_added)
+
+
+def test_ingest_missing_dir_exits(tmp_path):
+    import sys
+    from unittest.mock import patch
+
+    nonexistent = str(tmp_path / "does_not_exist")
+    with patch("src.rag.chroma_store.ChromaStore"):
+        from src.rag.ingest import ingest
+        with pytest.raises(SystemExit):
+            ingest(nonexistent)
+
+
+def test_ingest_no_md_files_skips_add(tmp_path):
+    """Empty directory → add_documents never called."""
+    from unittest.mock import MagicMock, patch
+
+    mock_store = MagicMock()
+    mock_store.count.return_value = 0
+
+    with patch("src.rag.chroma_store.ChromaStore", return_value=mock_store):
+        from src.rag.ingest import ingest
+        ingest(str(tmp_path))
+
+    mock_store.add_documents.assert_not_called()
+
+
+def test_ingest_clear_flag_calls_delete(tmp_path):
+    from unittest.mock import MagicMock, patch
+
+    mock_store = MagicMock()
+    mock_store.count.return_value = 0
+
+    with patch("src.rag.chroma_store.ChromaStore", return_value=mock_store):
+        from src.rag.ingest import ingest
+        ingest(str(tmp_path), clear=True)
+
+    mock_store._col.delete.assert_called_once()

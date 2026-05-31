@@ -113,3 +113,52 @@ def test_goals_are_isolated_per_user(client, unique_email):
     assert resp_b.status_code == 200
     names = [g["name"] for g in resp_b.json()]
     assert "User A Goal" not in names
+
+
+# ── Monte Carlo projection ────────────────────────────────────────────────────
+
+def _fresh_headers(client) -> dict:
+    import uuid
+    email = f"proj_{uuid.uuid4().hex[:8]}@test.com"
+    reg = client.post("/api/auth/register", json={"email": email, "password": "Pass123!"})
+    return {"Authorization": f"Bearer {reg.json()['access_token']}"}
+
+
+def test_goal_projection_returns_200(client):
+    headers = _fresh_headers(client)
+    create = client.post("/api/goals", json=_goal_payload(), headers=headers)
+    gid = create.json()["id"]
+
+    resp = client.post(f"/api/goals/{gid}/projection?years=10&monte_carlo_runs=100", headers=headers)
+    assert resp.status_code == 200
+
+
+def test_goal_projection_has_required_fields(client):
+    headers = _fresh_headers(client)
+    gid = client.post("/api/goals", json=_goal_payload(), headers=headers).json()["id"]
+
+    body = client.post(f"/api/goals/{gid}/projection?years=10&monte_carlo_runs=100", headers=headers).json()
+    assert "probability_of_success" in body
+    assert "projection" in body
+    assert "year_by_year" in body or len(body["projection"]) == 10
+
+
+def test_goal_projection_probability_in_range(client):
+    headers = _fresh_headers(client)
+    gid = client.post("/api/goals", json=_goal_payload(
+        target_amount="100000", current_amount="50000", monthly_contribution="2000"
+    ), headers=headers).json()["id"]
+
+    body = client.post(f"/api/goals/{gid}/projection?years=10&monte_carlo_runs=200", headers=headers).json()
+    prob = body["probability_of_success"]
+    assert 0.0 <= prob <= 1.0
+
+
+def test_goal_projection_nonexistent_returns_404(client, auth_headers):
+    resp = client.post("/api/goals/nonexistent-goal-id/projection", headers=auth_headers)
+    assert resp.status_code == 404
+
+
+def test_goal_projection_requires_auth(client):
+    resp = client.post("/api/goals/some-id/projection")
+    assert resp.status_code in (401, 403)

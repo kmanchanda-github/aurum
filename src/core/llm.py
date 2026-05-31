@@ -23,11 +23,11 @@ def get_llm(temperature: float | None = None, streaming: bool = False) -> BaseCh
         )
 
     if provider == "openai":
-        from langchain_openai import ChatOpenAI
-
         key = settings.openai_api_key
         if not key:
             raise ValueError("OPENAI_API_KEY is required when LLM_PROVIDER=openai")
+        from langchain_openai import ChatOpenAI
+
         return ChatOpenAI(
             model=model,
             api_key=key.get_secret_value(),
@@ -37,11 +37,11 @@ def get_llm(temperature: float | None = None, streaming: bool = False) -> BaseCh
         )
 
     if provider == "google":
-        from langchain_google_genai import ChatGoogleGenerativeAI
-
         key = settings.google_api_key
         if not key:
             raise ValueError("GOOGLE_API_KEY is required when LLM_PROVIDER=google")
+        from langchain_google_genai import ChatGoogleGenerativeAI
+
         return ChatGoogleGenerativeAI(
             model=model,
             google_api_key=key.get_secret_value(),

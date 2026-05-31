@@ -953,8 +953,8 @@
         <div class="day-card-inner">
           <div class="day-deliverables">
             <ul>
-              <li>Unit tests: test_security, test_cache, test_registry, test_supervisor</li>
-              <li>Integration tests: test_auth (register/login/me), test_portfolio (CRUD)</li>
+              <li>Unit tests: test_security, test_cache, test_registry, test_supervisor, test_llm, test_synthesizer, test_persistence, test_rag_functions</li>
+              <li>Integration tests: test_auth, test_portfolio, test_goals, test_market, test_health, test_settings</li>
               <li>Request-ID middleware (<code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">X-Request-ID</code>), rate limiting (slowapi)</li>
               <li>WebSocket reconnect — 8 attempts, max 30 s delay</li>
               <li><code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">nginx.conf</code> for production reverse proxy</li>
@@ -963,7 +963,7 @@
           </div>
           <div class="day-exit">
             <div class="day-exit-label">Exit Criteria</div>
-            <p><code>pytest tests/</code> passes at 70%+ coverage; nginx config verified; all docs generated.</p>
+            <p><code>pytest tests/</code> — 163 tests, 75% coverage; nginx config verified; all docs generated.</p>
           </div>
         </div>
       </div>
@@ -1139,7 +1139,7 @@ flowchart TD
     <strong>Aurum</strong> — AI-Powered Financial Literacy Assistant
   </p>
   <p style="margin-top:0.4rem;">
-    © 2024 Kapil Manchanda. All rights reserved.
+    © 2026 Kapil Manchanda. All rights reserved.
     Confidential and proprietary.
     Unauthorized use, reproduction, or distribution is strictly prohibited.
   </p>
