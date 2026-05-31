@@ -1,0 +1,63 @@
+app:
+  name: Aurum
+  version: "0.1.0"
+  debug: false
+
+llm:
+  provider: anthropic          # anthropic | openai | google | bedrock
+  model: claude-opus-4-7
+  max_tokens: 4096
+  temperature: 0.3
+  streaming: true
+
+rag:
+  persist_dir: /data/chroma
+  collection: finance_kb
+  top_k: 5
+  embedder: sentence-transformers/all-MiniLM-L6-v2
+  chunk_size: 800
+  chunk_overlap: 100
+
+cache:
+  quote_ttl_seconds: 60
+  history_ttl_seconds: 300
+  index_ttl_seconds: 3600
+  news_ttl_seconds: 900
+
+data_sources:
+  yfinance:
+    enabled: true
+    priority: 10
+  alpha_vantage:
+    enabled: false
+    priority: 20
+    base_url: https://www.alphavantage.co/query
+  yahoo:
+    enabled: false
+    priority: 30
+  nasdaq_data_link:
+    enabled: false
+    priority: 40
+
+news_sources:
+  pygooglenews:
+    enabled: true
+    language: en
+    country: US
+
+guardrails:
+  disclaimer_enabled: true
+  disclaimer_text: >
+    This information is for educational purposes only and does not constitute
+    personalized financial advice. Please consult a licensed financial advisor
+    before making investment decisions.
+
+supervisor:
+  confidence_threshold: 0.6
+  max_parallel_agents: 3
+
+indices:
+  - "^GSPC"   # S&P 500
+  - "^NDX"    # Nasdaq 100
+  - "^DJI"    # Dow Jones
+  - "^VIX"    # Volatility

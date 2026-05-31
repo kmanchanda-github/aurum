@@ -1,0 +1,46 @@
+# Single-container build for Hugging Face Spaces (Docker SDK)
+# Uses SQLite + in-process cache instead of Postgres + Redis
+FROM python:3.12-slim AS builder
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends gcc curl && rm -rf /var/lib/apt/lists/*
+RUN pip install --no-cache-dir uv
+
+COPY pyproject.toml ./
+RUN uv pip install --system -e ".[anthropic]"
+
+# ── Build UI ──────────────────────────────────────────────────────────────────
+FROM node:20-alpine AS ui-builder
+WORKDIR /ui
+COPY ui/package*.json ./
+RUN npm ci
+COPY ui/ ./
+ARG VITE_API_BASE=""
+ARG VITE_WS_BASE=""
+RUN npm run build
+
+# ── Final image ───────────────────────────────────────────────────────────────
+FROM python:3.12-slim AS final
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends libpq-dev && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /usr/local/lib/python3.12 /usr/local/lib/python3.12
+COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=ui-builder /ui/dist ./ui/dist
+
+COPY src/ ./src/
+COPY alembic/ ./alembic/
+COPY alembic.ini ./
+COPY config.yaml ./
+
+RUN mkdir -p /data/chroma
+
+ENV PORT=7860
+ENV USE_SQLITE=true
+ENV USE_IN_MEMORY_CACHE=true
+ENV CHROMA_PERSIST_DIR=/data/chroma
+
+EXPOSE 7860
+CMD ["sh", "-c", "uvicorn src.api.main:app --host 0.0.0.0 --port ${PORT:-7860}"]

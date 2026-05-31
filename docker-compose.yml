@@ -1,0 +1,116 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-aurum}
+      POSTGRES_USER: ${POSTGRES_USER:-aurum}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aurum_dev}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aurum}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - aurum_net
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - aurum_net
+
+  chroma:
+    image: chromadb/chroma:latest
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      IS_PERSISTENT: "TRUE"
+      PERSIST_DIRECTORY: /chroma/chroma
+      ANONYMIZED_TELEMETRY: "FALSE"
+    ports:
+      - "8001:8000"
+    networks:
+      - aurum_net
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-aurum}:${POSTGRES_PASSWORD:-aurum_dev}@postgres:5432/${POSTGRES_DB:-aurum}
+      REDIS_URL: redis://redis:6379/0
+      CHROMA_HOST: chroma
+      CHROMA_PORT: 8000
+      CHROMA_PERSIST_DIR: /data/chroma
+    volumes:
+      - .:/app
+      - chroma_data:/data/chroma
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      chroma:
+        condition: service_started
+    networks:
+      - aurum_net
+
+  ui:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile.dev
+    command: npm run dev -- --host 0.0.0.0 --port 5173
+    volumes:
+      - ./ui:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_BASE: http://localhost:8000
+      VITE_WS_BASE: ws://localhost:8000
+    networks:
+      - aurum_net
+
+  rag-ingest:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -m src.rag.ingest --seed-dir src/rag/seed
+    env_file: .env
+    environment:
+      CHROMA_HOST: chroma
+      CHROMA_PORT: 8000
+    volumes:
+      - .:/app
+      - chroma_data:/data/chroma
+    profiles:
+      - seed
+    depends_on:
+      - chroma
+    networks:
+      - aurum_net
+
+volumes:
+  postgres_data:
+  redis_data:
+  chroma_data:
+
+networks:
+  aurum_net:
+    driver: bridge

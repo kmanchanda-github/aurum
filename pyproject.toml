@@ -1,0 +1,77 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "aurum"
+version = "0.1.0"
+description = "AI-powered multi-agent financial literacy assistant"
+requires-python = ">=3.12"
+dependencies = [
+    # Core
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "websockets>=13.0",
+    "pydantic[email]>=2.9.0",
+    "pydantic-settings>=2.6.0",
+    # Database
+    "sqlalchemy>=2.0.36",
+    "alembic>=1.14.0",
+    "asyncpg>=0.30.0",
+    "aiosqlite>=0.20.0",
+    "greenlet>=3.1.0",
+    # LangGraph / LangChain
+    "langgraph>=0.2.50",
+    "langchain>=0.3.9",
+    "langchain-core>=0.3.21",
+    "langchain-community>=0.3.9",
+    "langgraph-checkpoint-postgres>=2.0.0",
+    # RAG
+    "chromadb>=0.5.20",
+    "sentence-transformers>=3.3.0",
+    # Market data
+    "yfinance>=0.2.50",
+    "httpx>=0.28.0",
+    # News
+    "pygooglenews>=0.1.2",
+    "feedparser>=6.0.11",
+    # Cache & infra
+    "redis>=5.2.0",
+    "cachetools>=5.5.0",
+    # Auth
+    "python-jose[cryptography]>=3.3.0",
+    "bcrypt>=4.0.0",
+    "python-multipart>=0.0.17",
+    # Utils
+    "structlog>=24.4.0",
+    "slowapi>=0.1.9",
+    "python-dateutil>=2.9.0",
+    "numpy>=2.1.0",
+]
+
+[project.optional-dependencies]
+anthropic = ["langchain-anthropic>=0.3.0"]
+openai    = ["langchain-openai>=0.2.9"]
+google    = ["langchain-google-genai>=2.0.5"]
+bedrock   = ["langchain-aws>=0.2.7"]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "httpx>=0.28.0",
+    "ruff>=0.8.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]

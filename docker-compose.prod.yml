@@ -1,0 +1,71 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-aurum}
+      POSTGRES_USER: ${POSTGRES_USER:-aurum}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aurum}"]
+      interval: 5s
+      retries: 10
+    networks: [aurum_net]
+
+  redis:
+    image: redis:7-alpine
+    volumes: [redis_data:/data]
+    networks: [aurum_net]
+
+  chroma:
+    image: chromadb/chroma:0.5.20
+    volumes: [chroma_data:/chroma/chroma]
+    environment:
+      IS_PERSISTENT: "TRUE"
+      PERSIST_DIRECTORY: /chroma/chroma
+    networks: [aurum_net]
+
+  api:
+    build: { context: ., dockerfile: Dockerfile }
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --workers 4
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-aurum}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-aurum}
+      REDIS_URL: redis://redis:6379/0
+      CHROMA_HOST: chroma
+      CHROMA_PORT: 8000
+    volumes: [chroma_data:/data/chroma]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_started }
+      chroma: { condition: service_started }
+    networks: [aurum_net]
+
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ui_dist:/usr/share/nginx/html:ro
+    ports: ["80:80"]
+    depends_on: [api]
+    networks: [aurum_net]
+
+  ui-builder:
+    image: node:20-alpine
+    working_dir: /app
+    command: sh -c "npm ci && npm run build"
+    volumes:
+      - ./ui:/app
+      - ui_dist:/app/dist
+      - /app/node_modules
+    profiles: ["build"]
+
+volumes:
+  postgres_data:
+  redis_data:
+  chroma_data:
+  ui_dist:
+
+networks:
+  aurum_net:

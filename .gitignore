@@ -1,0 +1,62 @@
+# Environment — never commit real secrets
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+*.cover
+
+# Data / databases
+*.db
+*.sqlite
+*.sqlite3
+data/
+/data/
+
+# ChromaDB local persistence
+chroma_data/
+
+# Node / frontend
+ui/node_modules/
+ui/dist/
+ui/.env
+ui/.env.local
+
+# Docker
+*.log
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Alembic
+alembic/versions/__pycache__/
+
+# Claude Code workspace config (keep launch.json if desired)
+.claude/
