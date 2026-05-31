@@ -38,8 +38,9 @@ if settings.mcp_enabled:
                 return await call_next(request)
             _mcp_server.add_middleware(_mcp_auth)
 
-        # path="/" so the endpoint lives at /mcp (the mount point) not /mcp/mcp
-        _mcp_http_app = _mcp_server.http_app(path="/")
+        # transport="sse" for mcp-remote compatibility (Claude Desktop)
+        # path="/" so SSE lives at /mcp/sse and messages at /mcp/messages
+        _mcp_http_app = _mcp_server.http_app(path="/", transport="sse")
         logger.info("mcp http_app created", path="/mcp", auth=bool(_mcp_api_key))
     except Exception as _exc:
         logger.warning("mcp server not available", error=str(_exc))
