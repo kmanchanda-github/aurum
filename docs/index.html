@@ -435,6 +435,71 @@ ws.<span class="fn">close</span>(<span class="num">1000</span>, <span class="str
   </div>
 </div>
 
+  <!-- Design Decision: React over Streamlit -->
+  <h3>Design Decision: React SPA vs. Streamlit</h3>
+  <p>
+    The capstone problem statement lists <strong>Streamlit / Gradio / React</strong> as acceptable web
+    interface technologies. Aurum uses <strong>React 18 + Vite</strong>. This was a deliberate
+    architectural choice driven by three hard technical constraints — not a framework preference.
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Requirement</th><th>React SPA</th><th>Streamlit</th><th>Why it matters</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Real-time token streaming</strong></td>
+          <td><span class="badge badge-green">✅ Native WebSocket</span></td>
+          <td><span class="badge badge-red">❌ Not possible</span></td>
+          <td>Streamlit reruns the entire Python script on each interaction. It cannot hold a persistent WebSocket connection open to stream LLM tokens as they arrive. The LangGraph <code>astream_events</code> pipeline emits 50–200 token chunks per response — without streaming, users wait 3–5 seconds before seeing any output.</td>
+        </tr>
+        <tr>
+          <td><strong>Portfolio visualizations</strong></td>
+          <td><span class="badge badge-green">✅ Recharts (interactive SVG)</span></td>
+          <td><span class="badge badge-gold">⚠️ Static Plotly / Matplotlib</span></td>
+          <td>The allocation pie chart and Monte Carlo p10/p50/p90 band chart require interactive, responsive SVG components. Recharts renders these natively in the browser; Streamlit wraps static output with limited interactivity and no drill-down.</td>
+        </tr>
+        <tr>
+          <td><strong>Auth &amp; session isolation</strong></td>
+          <td><span class="badge badge-green">✅ JWT, per-user DB rows</span></td>
+          <td><span class="badge badge-red">❌ No native auth model</span></td>
+          <td>Aurum has per-user portfolios, goals, and conversation history. Streamlit has no session isolation — all users share the same Python process state. Implementing proper auth requires abandoning Streamlit's core paradigm.</td>
+        </tr>
+        <tr>
+          <td><strong>Multi-page routing</strong></td>
+          <td><span class="badge badge-green">✅ React Router (6 pages)</span></td>
+          <td><span class="badge badge-gold">⚠️ st.tabs() — no URL routing</span></td>
+          <td>Chat, Portfolio, Market, Goals, News, and Settings are separate routes with bookmarkable URLs, browser history, and independent data lifecycles. Streamlit's <code>st.tabs()</code> is a widget — there are no URLs and no route-level state.</td>
+        </tr>
+        <tr>
+          <td><strong>Single-container deploy</strong></td>
+          <td><span class="badge badge-green">✅ Static build served by FastAPI</span></td>
+          <td><span class="badge badge-gold">⚠️ Requires separate process</span></td>
+          <td>The React build compiles to static files served by FastAPI's <code>StaticFiles</code> mount — one container, one process, one port 7860. Streamlit requires a separate long-running Python process and a reverse proxy to sit alongside FastAPI.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card" style="border-left:3px solid var(--accent);margin-top:8px">
+    <p>
+      The core user-facing feature of Aurum is <strong>token-by-token streaming chat</strong>: watching the
+      LLM compose a response in real time, seeing which agents are contributing, and receiving citations
+      as they arrive. This is not a UI polish feature — it is fundamental to the experience of a
+      multi-agent assistant. Streamlit's script-rerun execution model makes this architecturally impossible
+      without abandoning Streamlit's core paradigm entirely.
+    </p>
+    <p style="margin-bottom:0">
+      React is explicitly listed alongside Streamlit in the problem statement's own architecture table
+      (<em>"Streamlit / Gradio / React"</em>). Choosing the production-grade option from that list —
+      the one that enables streaming, persistent auth, interactive visualizations, and single-container
+      deployment — is consistent with the capstone goal of building a <strong>production-ready</strong>
+      AI system, not a prototype.
+    </p>
+  </div>
+
+</div>
+
 <!-- ═══════════════════ TECH STACK ═══════════════════ -->
 <div id="tab-stack" class="tab-content">
   <div class="section-header"><div class="section-num">3</div><h2>Technology Stack</h2></div>
