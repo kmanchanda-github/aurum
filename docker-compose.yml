@@ -56,6 +56,8 @@ services:
       CHROMA_HOST: chroma
       CHROMA_PORT: 8000
       CHROMA_PERSIST_DIR: /data/chroma
+      MCP_ENABLED: "true"
+      MCP_API_KEY: ${MCP_API_KEY:-}
     volumes:
       - .:/app
       - chroma_data:/data/chroma

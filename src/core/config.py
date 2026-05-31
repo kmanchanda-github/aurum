@@ -59,6 +59,9 @@ class Settings(BaseSettings):
     # Admin
     admin_emails: str = ""
 
+    # MCP Server (mounted at /mcp when enabled)
+    mcp_enabled: bool = False
+
     # LangSmith observability (optional)
     langchain_tracing_v2: str = "false"
     langchain_api_key: SecretStr | None = None

@@ -132,7 +132,32 @@ app.include_router(tax_router)
 app.include_router(settings_router)
 app.include_router(admin_router)
 
+# ── MCP Server (mounted at /mcp for remote Claude Desktop access) ─────────────
+# Enabled when MCP_ENABLED=true (set automatically in Dockerfile.hf and docker-compose).
+# Claude Desktop connects via: npx mcp-remote https://<host>/mcp
+# Protect with MCP_API_KEY env var when exposed publicly.
+if settings.mcp_enabled:
+    try:
+        import os as _os
+        from mcp_server.server import mcp as _mcp_server
+
+        _mcp_api_key = _os.getenv("MCP_API_KEY", "")
+
+        if _mcp_api_key:
+            async def _mcp_auth(request, call_next):
+                if request.headers.get("x-api-key", "") != _mcp_api_key:
+                    from starlette.responses import JSONResponse
+                    return JSONResponse({"error": "Unauthorized"}, status_code=401)
+                return await call_next(request)
+            _mcp_server.add_middleware(_mcp_auth)
+
+        app.mount("/mcp", _mcp_server.http_app(), name="mcp")
+        logger.info("mcp server mounted", path="/mcp", auth=bool(_mcp_api_key))
+    except Exception as _exc:
+        logger.warning("mcp server not available", error=str(_exc))
+
 # ── Serve React SPA (production / HF Spaces) ─────────────────────────────────
+# Must be last — StaticFiles with html=True is a catch-all for all unmatched paths.
 _ui_dist = Path("ui/dist")
 if _ui_dist.exists():
     app.mount("/", StaticFiles(directory=str(_ui_dist), html=True), name="ui")

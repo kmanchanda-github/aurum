@@ -326,7 +326,81 @@ uv pip install -e <span class="str">".[mcp]"</span></code></pre>
   </div>
 
   <!-- Remote HTTP -->
-  <h3>Remote HTTP Deployment</h3>
+  <!-- HF Spaces -->
+  <h3>Hugging Face Spaces — Claude Desktop via Remote MCP</h3>
+
+  <p>When deployed to Hugging Face Spaces, the MCP server runs <strong>inside the existing
+  FastAPI container</strong> — no extra container or port needed. It is mounted at
+  <code>/mcp</code> on the same port 7860 that serves the web app.</p>
+
+  <div class="arch-box"><span class="gold">Claude Desktop</span>  (your laptop)
+    │
+    │  stdio  ──►  <span class="gold">npx mcp-remote</span>  (local bridge process)
+    │                    │
+    │                    │  HTTPS
+    │                    ▼
+    │         <span class="gold">https://username-aurum.hf.space/mcp</span>
+    │                    │
+    │         FastAPI app (port 7860)
+    │              ├── /api/*        main API
+    │              ├── /mcp          MCP server  ◄── mounted here
+    │              └── /             React SPA
+    │
+    └── MCP_ENABLED=true   (set automatically in Dockerfile.hf)
+        MCP_API_KEY=...    (set in HF Space secrets)</div>
+
+  <h4>Step 1 — Set secrets in your HF Space</h4>
+  <p>In your HF Space settings → <strong>Repository secrets</strong>, add:</p>
+  <table>
+    <thead><tr><th>Secret name</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td><code>ANTHROPIC_API_KEY</code> (or OpenAI)</td><td>Your LLM API key</td></tr>
+      <tr><td><code>SECRET_KEY</code></td><td>Random 32-char string for JWT auth</td></tr>
+      <tr><td><code>MCP_API_KEY</code></td><td>Any strong secret — used to authenticate Claude Desktop</td></tr>
+    </tbody>
+  </table>
+  <p><code>MCP_ENABLED=true</code> is already set in <code>Dockerfile.hf</code> — no extra config needed in the Space.</p>
+
+  <h4>Step 2 — Configure Claude Desktop</h4>
+  <p>Install <code>mcp-remote</code> if you haven't already: <code>npm install -g mcp-remote</code></p>
+  <p>Then add to <code>claude_desktop_config.json</code>:</p>
+  <pre><code>{
+  <span class="str">"mcpServers"</span>: {
+    <span class="str">"aurum-finance"</span>: {
+      <span class="str">"command"</span>: <span class="str">"npx"</span>,
+      <span class="str">"args"</span>: [
+        <span class="str">"mcp-remote"</span>,
+        <span class="str">"https://YOUR_USERNAME-aurum.hf.space/mcp"</span>,
+        <span class="str">"--header"</span>,
+        <span class="str">"X-API-Key:YOUR_MCP_API_KEY"</span>
+      ]
+    }
+  }
+}</code></pre>
+  <p>Replace <code>YOUR_USERNAME</code> with your HF username and <code>YOUR_MCP_API_KEY</code>
+  with the secret you set in Step 1. Restart Claude Desktop — the tools will appear.</p>
+
+  <div class="callout callout-tip">
+    <strong>How mcp-remote works:</strong> It runs as a local process that Claude Desktop
+    talks to over stdio (the normal way). Internally it forwards every tool call as an
+    HTTPS request to the remote MCP endpoint and streams the response back. Claude Desktop
+    never needs to know about HTTP — it just sees a normal stdio MCP server.
+  </div>
+
+  <div class="callout callout-warn">
+    <strong>Always set MCP_API_KEY when deploying to HF Spaces.</strong>
+    HF Space URLs are public. Without the key, anyone on the internet can call your tools,
+    fetch market data, and query your knowledge base without any rate limiting.
+  </div>
+
+  <h4>Local Docker — same pattern</h4>
+  <p>When running <code>docker compose up</code> locally, <code>MCP_ENABLED=true</code> is
+  set in <code>docker-compose.yml</code> and the MCP server is mounted at
+  <code>http://localhost:8000/mcp</code>. Use the same Claude Desktop config with
+  <code>http://localhost:8000/mcp</code> as the URL (no auth key needed for local).</p>
+
+  <h3>Standalone Remote HTTP Deployment</h3>
+  <p>If you want the MCP server as a <em>separate process</em> rather than mounted inside FastAPI:</p>
   <pre><code><span class="cm"># Start with auth on port 8002</span>
 MCP_TRANSPORT=streamable-http \
 MCP_HOST=0.0.0.0 \
