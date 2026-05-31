@@ -54,6 +54,7 @@ anthropic = ["langchain-anthropic>=0.3.0"]
 openai    = ["langchain-openai>=0.2.9"]
 google    = ["langchain-google-genai>=2.0.5"]
 bedrock   = ["langchain-aws>=0.2.7"]
+mcp       = ["fastmcp>=2.0.0"]
 dev = [
     "pytest>=8.3.0",
     "pytest-asyncio>=0.24.0",
