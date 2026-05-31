@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import uuid
-from contextlib import asynccontextmanager
+from contextlib import AsyncExitStack, asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -20,49 +20,79 @@ from src.core.logging import configure_logging, get_logger
 configure_logging(debug=settings.debug)
 logger = get_logger(__name__)
 
+# ── MCP Server — create http_app at module level so lifespan can be composed ──
+# FastMCP 3.x requires its lifespan to be entered alongside the parent app's
+# lifespan (via AsyncExitStack). Mounting alone is not enough.
+_mcp_http_app = None
+if settings.mcp_enabled:
+    try:
+        import os as _os
+        from mcp_server.server import mcp as _mcp_server
+
+        _mcp_api_key = _os.getenv("MCP_API_KEY", "")
+        if _mcp_api_key:
+            async def _mcp_auth(request, call_next):
+                if request.headers.get("x-api-key", "") != _mcp_api_key:
+                    from starlette.responses import JSONResponse
+                    return JSONResponse({"error": "Unauthorized"}, status_code=401)
+                return await call_next(request)
+            _mcp_server.add_middleware(_mcp_auth)
+
+        # path="/" so the endpoint lives at /mcp (the mount point) not /mcp/mcp
+        _mcp_http_app = _mcp_server.http_app(path="/")
+        logger.info("mcp http_app created", path="/mcp", auth=bool(_mcp_api_key))
+    except Exception as _exc:
+        logger.warning("mcp server not available", error=str(_exc))
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("aurum starting", provider=settings.llm_provider, model=settings.llm_model)
+    async with AsyncExitStack() as stack:
+        # Compose FastMCP 3.x lifespan — must be entered before startup code
+        if _mcp_http_app is not None:
+            await stack.enter_async_context(_mcp_http_app.lifespan(app))
 
-    # ── Database ──────────────────────────────────────────────────────────────
-    from src.core.database import create_all_tables
-    await create_all_tables()
+        logger.info("aurum starting", provider=settings.llm_provider, model=settings.llm_model)
 
-    # ── Cache ─────────────────────────────────────────────────────────────────
-    from src.core.redis_client import make_cache
-    app.state.cache = make_cache()
+        # ── Database ──────────────────────────────────────────────────────────
+        from src.core.database import create_all_tables
+        await create_all_tables()
 
-    # ── ChromaDB / RAG ────────────────────────────────────────────────────────
-    try:
-        from src.rag.chroma_store import ChromaStore
-        app.state.chroma_store = ChromaStore()
-    except Exception as exc:
-        logger.warning("chroma init failed — RAG disabled", error=str(exc))
-        app.state.chroma_store = None
+        # ── Cache ─────────────────────────────────────────────────────────────
+        from src.core.redis_client import make_cache
+        app.state.cache = make_cache()
 
-    # ── Adapter Registry ──────────────────────────────────────────────────────
-    from src.adapters.registry import build_registry
-    app.state.registry = build_registry(cache=app.state.cache)
+        # ── ChromaDB / RAG ────────────────────────────────────────────────────
+        try:
+            from src.rag.chroma_store import ChromaStore
+            app.state.chroma_store = ChromaStore()
+        except Exception as exc:
+            logger.warning("chroma init failed — RAG disabled", error=str(exc))
+            app.state.chroma_store = None
 
-    # ── LangGraph ─────────────────────────────────────────────────────────────
-    try:
-        from src.agents.graph import build_graph
-        app.state.graph = await build_graph(
-            registry=app.state.registry,
-            chroma_store=app.state.chroma_store,
-        )
-        logger.info("langgraph ready")
-    except Exception as exc:
-        logger.error("langgraph init failed", error=str(exc))
-        app.state.graph = None
+        # ── Adapter Registry ──────────────────────────────────────────────────
+        from src.adapters.registry import build_registry
+        app.state.registry = build_registry(cache=app.state.cache)
 
-    logger.info("aurum ready")
-    yield
+        # ── LangGraph ─────────────────────────────────────────────────────────
+        try:
+            from src.agents.graph import build_graph
+            app.state.graph = await build_graph(
+                registry=app.state.registry,
+                chroma_store=app.state.chroma_store,
+            )
+            logger.info("langgraph ready")
+        except Exception as exc:
+            logger.error("langgraph init failed", error=str(exc))
+            app.state.graph = None
 
-    # ── Shutdown ──────────────────────────────────────────────────────────────
-    await app.state.cache.close()
-    logger.info("aurum stopped")
+        logger.info("aurum ready")
+        yield
+
+        # ── Shutdown ──────────────────────────────────────────────────────────
+        await app.state.cache.close()
+        logger.info("aurum stopped")
+        # AsyncExitStack cleans up MCP lifespan automatically
 
 
 app = FastAPI(
@@ -132,29 +162,10 @@ app.include_router(tax_router)
 app.include_router(settings_router)
 app.include_router(admin_router)
 
-# ── MCP Server (mounted at /mcp for remote Claude Desktop access) ─────────────
-# Enabled when MCP_ENABLED=true (set automatically in Dockerfile.hf and docker-compose).
-# Claude Desktop connects via: npx mcp-remote https://<host>/mcp
-# Protect with MCP_API_KEY env var when exposed publicly.
-if settings.mcp_enabled:
-    try:
-        import os as _os
-        from mcp_server.server import mcp as _mcp_server
-
-        _mcp_api_key = _os.getenv("MCP_API_KEY", "")
-
-        if _mcp_api_key:
-            async def _mcp_auth(request, call_next):
-                if request.headers.get("x-api-key", "") != _mcp_api_key:
-                    from starlette.responses import JSONResponse
-                    return JSONResponse({"error": "Unauthorized"}, status_code=401)
-                return await call_next(request)
-            _mcp_server.add_middleware(_mcp_auth)
-
-        app.mount("/mcp", _mcp_server.http_app(), name="mcp")
-        logger.info("mcp server mounted", path="/mcp", auth=bool(_mcp_api_key))
-    except Exception as _exc:
-        logger.warning("mcp server not available", error=str(_exc))
+# ── Mount MCP sub-app (lifespan already composed above) ──────────────────────
+if _mcp_http_app is not None:
+    app.mount("/mcp", _mcp_http_app, name="mcp")
+    logger.info("mcp server mounted", path="/mcp")
 
 # ── Serve React SPA (production / HF Spaces) ─────────────────────────────────
 # Must be last — StaticFiles with html=True is a catch-all for all unmatched paths.
