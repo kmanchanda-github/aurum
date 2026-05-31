@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Aurum — MCP Server</title>
+<style>
+  :root[data-theme="dark"] {
+    --bg: #0d1117; --bg2: #161b22; --bg3: #1f2937; --border: #30363d;
+    --text: #e6edf3; --text2: #8b949e; --accent: #d4a843; --accent2: #f0c060;
+    --link: #58a6ff; --green: #3fb950; --red: #f85149; --code-bg: #1f2937;
+    --shadow: rgba(0,0,0,0.4); --card-hover: #1c2128;
+  }
+  :root[data-theme="light"] {
+    --bg: #f6f8fa; --bg2: #ffffff; --bg3: #f1f5f9; --border: #d0d7de;
+    --text: #24292f; --text2: #656d76; --accent: #b8860b; --accent2: #d4a843;
+    --link: #0969da; --green: #1a7f37; --red: #cf222e; --code-bg: #1f2937;
+    --shadow: rgba(0,0,0,0.1); --card-hover: #f3f4f6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.6;font-size:15px}
+  a{color:var(--link);text-decoration:none}
+  a:hover{text-decoration:underline}
+  header{position:sticky;top:0;z-index:100;background:var(--bg2);
+    border-bottom:1px solid var(--border);padding:0 24px;
+    display:flex;align-items:center;justify-content:space-between;
+    height:56px;box-shadow:0 1px 6px var(--shadow)}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px}
+  .logo-dot{width:22px;height:22px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    border-radius:50%;flex-shrink:0}
+  .header-nav{display:flex;align-items:center;gap:20px}
+  .header-nav a{font-size:13px;color:var(--text2);padding:4px 8px;border-radius:6px;transition:background .15s,color .15s}
+  .header-nav a:hover,.header-nav a.active{background:var(--bg3);color:var(--text);text-decoration:none}
+  .theme-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;
+    cursor:pointer;font-size:13px;color:var(--text2);transition:all .15s}
+  .theme-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .container{max-width:900px;margin:0 auto;padding:40px 24px 80px}
+  h2{font-size:22px;font-weight:700;margin:40px 0 12px;padding-bottom:10px;
+    border-bottom:1px solid var(--border)}
+  h3{font-size:17px;font-weight:600;color:var(--accent);margin:28px 0 12px}
+  h4{font-size:15px;font-weight:600;margin:20px 0 8px}
+  p{margin-bottom:12px;color:var(--text2)}
+  ul,ol{padding-left:20px;margin-bottom:12px}
+  li{margin-bottom:5px;color:var(--text2)}
+  code{font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:13px;
+    background:var(--bg3);color:#a5f3fc;padding:2px 6px;border-radius:4px;
+    border:1px solid var(--border)}
+  pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;
+    padding:16px;overflow-x:auto;margin:12px 0 20px;font-size:13px;line-height:1.55}
+  pre code{background:none;border:none;padding:0;color:#e2e8f0}
+  .cm{color:#546e7a;font-style:italic}.kw{color:#c792ea}.str{color:#c3e88d}
+  .num{color:#f78c6c}.tp{color:#ffcb6b}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0 24px}
+  thead{background:var(--bg3)}
+  th{padding:10px 14px;text-align:left;font-weight:600;font-size:13px;
+    color:var(--text2);border-bottom:1px solid var(--border)}
+  td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text2)}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:var(--card-hover)}
+  .badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:12px;font-weight:600;margin-right:4px}
+  .badge-gold{background:rgba(212,168,67,.15);color:var(--accent)}
+  .badge-green{background:rgba(63,185,80,.15);color:var(--green)}
+  .badge-blue{background:rgba(88,166,255,.15);color:#58a6ff}
+  .badge-red{background:rgba(248,81,73,.15);color:var(--red)}
+  .callout{border-radius:8px;padding:14px 16px;margin:16px 0;font-size:14px;
+    border-left:4px solid;color:var(--text2)}
+  .callout-info{background:rgba(88,166,255,.08);border-color:#58a6ff}
+  .callout-warn{background:rgba(248,81,73,.08);border-color:var(--red)}
+  .callout-tip{background:rgba(63,185,80,.08);border-color:var(--green)}
+  .tool-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+    padding:18px 20px;margin-bottom:12px;transition:border-color .15s}
+  .tool-card:hover{border-color:var(--accent)}
+  .tool-name{font-family:"SF Mono","Fira Code",Consolas,monospace;font-size:14px;
+    font-weight:700;color:var(--accent);margin-bottom:6px}
+  .tool-desc{font-size:13px;color:var(--text2);margin-bottom:10px}
+  .tool-args{font-size:12px;color:var(--text2)}
+  .tool-args code{font-size:12px}
+  .infra-tag{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;
+    font-weight:600;margin-left:8px;vertical-align:middle}
+  .infra-online{background:rgba(63,185,80,.15);color:var(--green)}
+  .infra-rag{background:rgba(88,166,255,.15);color:#58a6ff}
+  .arch-box{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;
+    padding:18px;font-family:"SF Mono","Fira Code",Consolas,monospace;
+    font-size:12px;color:var(--text2);line-height:1.9;white-space:pre;overflow-x:auto}
+  .gold{color:var(--accent);font-weight:700}
+  .footer-nav{margin-top:60px;padding-top:24px;border-top:1px solid var(--border);
+    font-size:13px;color:var(--text2);text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    ⚜️ Aurum
+    <span style="font-weight:400;color:var(--text2);font-size:13px;margin-left:4px">MCP Server</span>
+  </div>
+  <div class="header-nav">
+    <a href="index.html">Docs</a>
+    <a href="plan.html">Project Plan</a>
+    <a href="techstack.html">Tech Stack</a>
+    <a href="operations.html">Operations</a>
+    <a href="datasources.html">Data Sources</a>
+    <a href="mcp.html" class="active">MCP Server</a>
+  </div>
+  <button class="theme-btn" onclick="toggleTheme()">☀️ Light</button>
+</header>
+
+<div class="container">
+
+  <h2 style="margin-top:0;border-bottom:2px solid var(--accent);padding-bottom:12px">
+    🔌 MCP Server — Model Context Protocol Integration
+  </h2>
+
+  <p>Aurum exposes its finance tools via the <strong>Model Context Protocol (MCP)</strong>,
+  allowing Claude Desktop and other MCP-compatible clients to query live market data,
+  search the financial knowledge base, analyze portfolios, and run Monte Carlo projections
+  — all from within a conversation.</p>
+
+  <p>The server ships with two transport modes controlled by a single environment variable.
+  No code changes are required to switch between them.</p>
+
+  <!-- Architecture -->
+  <h3>Architecture</h3>
+  <div class="arch-box"><span class="gold">Claude Desktop</span>  (or any MCP client)
+    │
+    │  stdio pipe  ──────── default, local only
+    │  HTTP + SSE  ──────── set MCP_TRANSPORT=streamable-http
+    ▼
+<span class="gold">mcp_server/server.py</span>  (FastMCP)
+    ├── get_stock_quote / get_market_overview / get_stock_history
+    │       └── src/adapters/market/yfinance_adapter.py   (Yahoo Finance)
+    │
+    ├── search_financial_news
+    │       └── src/adapters/news/pygooglenews_adapter.py  (Google News RSS)
+    │
+    ├── search_knowledge_base / ask_finance_question
+    │       └── src/rag/chroma_store.py  → ChromaDB (51 articles)
+    │
+    ├── analyze_portfolio
+    │       └── yfinance_adapter  ×  N symbols  +  local math
+    │
+    └── calculate_goal_projection
+            └── NumPy Monte Carlo  (no external calls)</div>
+
+  <div class="callout callout-tip">
+    <strong>No Docker needed for 6 of 8 tools.</strong> Market data, portfolio analysis,
+    news, and goal projections all run standalone. Only <code>search_knowledge_base</code>
+    and <code>ask_finance_question</code> require ChromaDB (for the vector store).
+  </div>
+
+  <!-- Tools -->
+  <h3>Tools Reference</h3>
+
+  <div class="tool-card">
+    <div class="tool-name">get_stock_quote <span class="infra-tag infra-online">internet</span></div>
+    <div class="tool-desc">Real-time price, daily change, 52-week range, market cap, and volume for any ticker.</div>
+    <div class="tool-args"><strong>Args:</strong> <code>symbol: str</code> — e.g. <code>"AAPL"</code>, <code>"^GSPC"</code> (S&P 500), <code>"BTC-USD"</code></div>
+  </div>
+
+  <div class="tool-card">
+    <div class="tool-name">get_market_overview <span class="infra-tag infra-online">internet</span></div>
+    <div class="tool-desc">S&P 500, NASDAQ Composite, and Dow Jones — current price and daily change. Good opening context for any market conversation.</div>
+    <div class="tool-args"><strong>Args:</strong> none</div>
+  </div>
+
+  <div class="tool-card">
+    <div class="tool-name">get_stock_history <span class="infra-tag infra-online">internet</span></div>
+    <div class="tool-desc">OHLCV bars for any ticker over any period. Returns start/end price, total return, and up to 30 recent bars.</div>
+    <div class="tool-args">
+      <strong>Args:</strong>
+      <code>symbol: str</code>,
+      <code>period: str</code> (1d / 5d / 1mo / 3mo / 6mo / 1y / 2y / 5y / 10y / ytd / max),
+      <code>interval: str</code> (1d / 1wk / 1mo)
+    </div>
+  </div>
+
+  <div class="tool-card">
+    <div class="tool-name">search_financial_news <span class="infra-tag infra-online">internet</span></div>
+    <div class="tool-desc">Recent news articles via Google News RSS matching a query. Returns title, source, date, URL, and summary.</div>
+    <div class="tool-args">
+      <strong>Args:</strong>
+      <code>query: str</code> — e.g. <code>"Federal Reserve interest rates"</code>,
+      <code>limit: int</code> (1–10, default 5)
+    </div>
+  </div>
+
+  <div class="tool-card">
+    <div class="tool-name">search_knowledge_base <span class="infra-tag infra-rag">ChromaDB</span></div>
+    <div class="tool-desc">Semantic search over 51 curated financial education articles. Returns relevant passages with source title and category. Supports category filtering to narrow results.</div>
+    <div class="tool-args">
+      <strong>Args:</strong>
+      <code>query: str</code>,
+      <code>categories: list[str] | None</code> — filter to: <code>investing</code> / <code>portfolio</code> / <code>market</code> / <code>goals</code> / <code>tax</code>,
+      <code>k: int</code> (1–10, default 5)
+    </div>
+  </div>
+
+  <div class="tool-card">
+    <div class="tool-name">analyze_portfolio <span class="infra-tag infra-online">internet</span></div>
+    <div class="tool-desc">Fetches live prices for a list of holdings and returns P&amp;L, allocation percentages, and a portfolio summary. Pass holdings directly — no account login required.</div>
+    <div class="tool-args">
+      <strong>Args:</strong>
+      <code>holdings: list[dict]</code> — each item needs <code>symbol</code>, <code>shares</code>, <code>cost_basis</code>
+      <br>Example: <code>[{"symbol": "AAPL", "shares": 10, "cost_basis": 150.0}]</code>
+    </div>
+  </div>
+
+  <div class="tool-card">
+    <div class="tool-name">calculate_goal_projection <span class="infra-tag infra-online" style="background:rgba(246,144,60,.15);color:#f6903c">offline</span></div>
+    <div class="tool-desc">Monte Carlo simulation (1,000 paths by default) returning p10/p50/p90 outcomes and probability of reaching the target. Fully offline — pure NumPy, no network calls.</div>
+    <div class="tool-args">
+      <strong>Args:</strong>
+      <code>monthly_contribution: float</code>,
+      <code>current_amount: float</code>,
+      <code>target_amount: float</code>,
+      <code>years: int</code>,
+      <code>risk_tolerance: str</code> (conservative / moderate / aggressive),
+      <code>monte_carlo_runs: int</code> (100–5000, default 1000)
+    </div>
+  </div>
+
+  <div class="tool-card">
+    <div class="tool-name">ask_finance_question <span class="infra-tag infra-rag">ChromaDB</span></div>
+    <div class="tool-desc">RAG-grounded educational lookup: searches the knowledge base and returns the top-5 passages with source attribution. Use for conceptual questions about investing, taxes, or financial planning.</div>
+    <div class="tool-args">
+      <strong>Args:</strong>
+      <code>question: str</code>,
+      <code>categories: list[str] | None</code>
+    </div>
+  </div>
+
+  <!-- Transport -->
+  <h3>Transport Modes</h3>
+
+  <table>
+    <thead><tr><th>Transport</th><th>How to enable</th><th>Who can connect</th><th>Auth</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>stdio</strong> <span class="badge badge-gold">default</span></td>
+        <td>Just run the server (no env var needed)</td>
+        <td>Only Claude Desktop — private pipe on the same machine</td>
+        <td>Not needed — no network port</td>
+      </tr>
+      <tr>
+        <td><strong>streamable-http</strong></td>
+        <td><code>MCP_TRANSPORT=streamable-http</code></td>
+        <td>Any HTTP client that can reach <code>MCP_HOST:MCP_PORT</code></td>
+        <td>Set <code>MCP_API_KEY</code> to require <code>X-API-Key</code> header</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Auth explained -->
+  <h3>Auth Middleware — Why It Exists and How It Works</h3>
+
+  <p>The auth middleware only matters for the <strong>streamable-http transport</strong>.
+  Here is the distinction:</p>
+
+  <div class="callout callout-tip">
+    <strong>stdio transport (Claude Desktop):</strong> The MCP server is launched as a child
+    process by Claude Desktop. Communication happens over <code>stdin</code> / <code>stdout</code>
+    — a private OS pipe between two processes on the same machine. There is no TCP port,
+    no network exposure, and no way for any external party to reach the server. Auth middleware
+    is registered but <em>never invoked</em>.
+  </div>
+
+  <div class="callout callout-warn">
+    <strong>streamable-http transport:</strong> The server binds a TCP port and accepts HTTP
+    connections. If deployed to a VPS, exposed via a tunnel (ngrok, Cloudflare), or run on a
+    shared network, <em>anyone who can reach the port can call your tools</em> — fetching market
+    data, querying your knowledge base, or hammering the yfinance API on your behalf.
+    The middleware prevents this by requiring a shared secret.
+  </div>
+
+  <h4>How the middleware works</h4>
+  <p>When <code>MCP_API_KEY</code> is set, every incoming HTTP request must include the header:</p>
+  <pre><code>X-API-Key: your-secret-key</code></pre>
+  <p>If the header is missing or wrong, the middleware returns <code>401 Unauthorized</code>
+  before the request reaches any tool. If <code>MCP_API_KEY</code> is not set, the middleware
+  passes everything through — suitable for local testing.</p>
+
+  <pre><code><span class="cm"># No auth (local testing only)</span>
+MCP_TRANSPORT=streamable-http python3 -m mcp_server.server
+
+<span class="cm"># With auth (any remote deployment)</span>
+MCP_TRANSPORT=streamable-http \
+MCP_API_KEY=your-secret-key \
+python3 -m mcp_server.server</code></pre>
+
+  <!-- Installation -->
+  <h3>Installation</h3>
+  <pre><code><span class="cm"># Install Aurum with MCP extras</span>
+pip install -e <span class="str">".[mcp]"</span>
+
+<span class="cm"># Or with uv</span>
+uv pip install -e <span class="str">".[mcp]"</span></code></pre>
+
+  <p>This adds <code>fastmcp&gt;=2.0.0</code>. All other dependencies (yfinance, numpy, chromadb,
+  pygooglenews) are already part of the core Aurum install.</p>
+
+  <!-- Claude Desktop setup -->
+  <h3>Claude Desktop Setup</h3>
+  <p>Edit <code>~/Library/Application Support/Claude/claude_desktop_config.json</code>
+  (macOS) or <code>%APPDATA%\Claude\claude_desktop_config.json</code> (Windows):</p>
+
+  <pre><code>{
+  <span class="str">"mcpServers"</span>: {
+    <span class="str">"aurum-finance"</span>: {
+      <span class="str">"command"</span>: <span class="str">"python3"</span>,
+      <span class="str">"args"</span>: [<span class="str">"-m"</span>, <span class="str">"mcp_server.server"</span>],
+      <span class="str">"cwd"</span>: <span class="str">"/absolute/path/to/Aurum"</span>,
+      <span class="str">"env"</span>: {
+        <span class="str">"USE_IN_MEMORY_CACHE"</span>: <span class="str">"true"</span>
+      }
+    }
+  }
+}</code></pre>
+
+  <p>Restart Claude Desktop. The 8 Aurum tools appear in the tools panel.</p>
+
+  <div class="callout callout-tip">
+    <strong>With ChromaDB for RAG tools</strong> — add to the <code>env</code> block:
+    <code>"CHROMA_HOST": "localhost", "CHROMA_PORT": "8001"</code>
+    and run <code>docker compose up chromadb -d &amp;&amp; docker compose --profile seed up rag-ingest</code> first.
+  </div>
+
+  <!-- Remote HTTP -->
+  <h3>Remote HTTP Deployment</h3>
+  <pre><code><span class="cm"># Start with auth on port 8002</span>
+MCP_TRANSPORT=streamable-http \
+MCP_HOST=0.0.0.0 \
+MCP_PORT=8002 \
+MCP_API_KEY=your-secret-key \
+python3 -m mcp_server.server</code></pre>
+
+  <p>Add to <code>docker-compose.yml</code> for containerised deployment:</p>
+  <pre><code>  mcp:
+    build: .
+    command: python3 -m mcp_server.server
+    ports:
+      - <span class="str">"8002:8002"</span>
+    environment:
+      MCP_TRANSPORT: streamable-http
+      MCP_HOST: <span class="str">"0.0.0.0"</span>
+      MCP_PORT: <span class="str">"8002"</span>
+      MCP_API_KEY: ${MCP_API_KEY:-}
+      USE_IN_MEMORY_CACHE: <span class="str">"false"</span>
+      REDIS_URL: redis://redis:6379/0
+      CHROMA_HOST: chroma
+      CHROMA_PORT: <span class="str">"8000"</span>
+    depends_on: [redis, chroma]</code></pre>
+
+  <!-- Env vars -->
+  <h3>Environment Variables</h3>
+  <table>
+    <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>MCP_TRANSPORT</code></td><td><code>stdio</code></td><td>Transport mode: <code>stdio</code> or <code>streamable-http</code></td></tr>
+      <tr><td><code>MCP_HOST</code></td><td><code>0.0.0.0</code></td><td>Bind address (streamable-http only)</td></tr>
+      <tr><td><code>MCP_PORT</code></td><td><code>8002</code></td><td>Bind port (streamable-http only)</td></tr>
+      <tr><td><code>MCP_API_KEY</code></td><td><em>unset</em></td><td>If set, all HTTP requests need <code>X-API-Key: &lt;value&gt;</code></td></tr>
+      <tr><td><code>USE_IN_MEMORY_CACHE</code></td><td><code>true</code></td><td>Use <code>cachetools.TTLCache</code> instead of Redis</td></tr>
+      <tr><td><code>CHROMA_HOST</code></td><td><code>localhost</code></td><td>ChromaDB host (for RAG tools)</td></tr>
+      <tr><td><code>CHROMA_PORT</code></td><td><code>8001</code></td><td>ChromaDB port</td></tr>
+    </tbody>
+  </table>
+
+  <!-- Example conversations -->
+  <h3>Example Claude Desktop Conversations</h3>
+  <table>
+    <thead><tr><th>What you ask Claude</th><th>Tool(s) called</th></tr></thead>
+    <tbody>
+      <tr><td>"What is Apple trading at right now?"</td><td><code>get_stock_quote("AAPL")</code></td></tr>
+      <tr><td>"How has NVDA performed over the last 3 months?"</td><td><code>get_stock_quote</code> + <code>get_stock_history</code></td></tr>
+      <tr><td>"Give me a market overview before I decide what to do today"</td><td><code>get_market_overview()</code></td></tr>
+      <tr><td>"What's happening with the Fed this week?"</td><td><code>search_financial_news("Federal Reserve")</code></td></tr>
+      <tr><td>"Analyze my portfolio: 10 AAPL at $150, 20 VTI at $210, 30 BND at $75"</td><td><code>analyze_portfolio([...])</code></td></tr>
+      <tr><td>"I'm 35, have $80k, contribute $3k/month, want $2M by 65. What are my odds?"</td><td><code>calculate_goal_projection(...)</code></td></tr>
+      <tr><td>"How does tax-loss harvesting work?"</td><td><code>ask_finance_question(...)</code></td></tr>
+      <tr><td>"What's the difference between a Roth and Traditional IRA?"</td><td><code>search_knowledge_base(..., categories=["tax"])</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="footer-nav">
+    <a href="index.html">← Docs Home</a> &nbsp;|&nbsp;
+    <a href="operations.html">Operations Guide</a> &nbsp;|&nbsp;
+    <a href="datasources.html">Data Sources</a> &nbsp;|&nbsp;
+    <a href="techstack.html">Tech Stack</a>
+  </div>
+
+</div>
+
+<script>
+function toggleTheme(){
+  const h=document.documentElement;
+  const t=h.getAttribute('data-theme')==='dark'?'light':'dark';
+  h.setAttribute('data-theme',t);
+  document.querySelector('.theme-btn').textContent=t==='dark'?'☀️ Light':'🌙 Dark';
+}
+</script>
+</body>
+</html>
