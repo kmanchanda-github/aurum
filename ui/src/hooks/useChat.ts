@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { getToken } from "@/lib/auth";
-import { createChatWS } from "@/lib/ws";
+import { streamChat, type SSEConnection } from "@/lib/ws";
 
 export interface Citation {
   source_title: string;
@@ -24,141 +24,101 @@ export interface StreamState {
   citations: Citation[];
 }
 
-const RECONNECT_BASE_MS = 1_000;
-const RECONNECT_MAX_MS = 30_000;
-const RECONNECT_MAX_ATTEMPTS = 8;
-
 export function useChat(conversationId: string | null) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [streaming, setStreaming] = useState<StreamState | null>(null);
-  const [connected, setConnected] = useState(false);
-  const wsRef = useRef<WebSocket | null>(null);
-  const reconnectAttemptsRef = useRef(0);
-  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Track whether the hook is still mounted to avoid state updates after unmount
-  const mountedRef = useRef(true);
-
-  const clearReconnectTimer = () => {
-    if (reconnectTimerRef.current !== null) {
-      clearTimeout(reconnectTimerRef.current);
-      reconnectTimerRef.current = null;
-    }
-  };
-
-  const connect = useCallback(() => {
-    if (!conversationId) return;
-    const token = getToken();
-    if (!token) return;
-
-    const ws = createChatWS(conversationId, token);
-    wsRef.current = ws;
-
-    ws.onopen = () => {
-      if (!mountedRef.current) return;
-      reconnectAttemptsRef.current = 0;
-      setConnected(true);
-    };
-
-    ws.onclose = (ev) => {
-      if (!mountedRef.current) return;
-      setConnected(false);
-      // Don't reconnect if the close was clean (code 1000) or we're at max attempts
-      if (
-        ev.code !== 1000 &&
-        reconnectAttemptsRef.current < RECONNECT_MAX_ATTEMPTS
-      ) {
-        const delay = Math.min(
-          RECONNECT_BASE_MS * 2 ** reconnectAttemptsRef.current,
-          RECONNECT_MAX_MS
-        );
-        reconnectAttemptsRef.current += 1;
-        reconnectTimerRef.current = setTimeout(connect, delay);
-      }
-    };
-
-    ws.onmessage = (ev) => {
-      if (!mountedRef.current) return;
-      const frame = JSON.parse(ev.data);
-
-      switch (frame.type) {
-        case "agent_start":
-          setStreaming((s) => ({
-            content: s?.content ?? "",
-            currentAgent: frame.agent,
-            agentsUsed: [...(s?.agentsUsed ?? []), frame.agent],
-            citations: s?.citations ?? [],
-          }));
-          break;
-
-        case "token":
-          setStreaming((s) => ({
-            content: (s?.content ?? "") + frame.delta,
-            currentAgent: s?.currentAgent ?? null,
-            agentsUsed: s?.agentsUsed ?? [],
-            citations: s?.citations ?? [],
-          }));
-          break;
-
-        case "citation":
-          setStreaming((s) => ({
-            content: s?.content ?? "",
-            currentAgent: s?.currentAgent ?? null,
-            agentsUsed: s?.agentsUsed ?? [],
-            citations: [
-              ...(s?.citations ?? []),
-              {
-                source_title: frame.source_title,
-                source_url: frame.source_url,
-                snippet: frame.snippet,
-              },
-            ],
-          }));
-          break;
-
-        case "final":
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: frame.message_id,
-              role: "assistant",
-              content: frame.content,
-              agents_used: frame.agents_used,
-              citations: frame.citations,
-            },
-          ]);
-          setStreaming(null);
-          break;
-
-        case "error":
-          setStreaming(null);
-          break;
-      }
-    };
-  }, [conversationId]);
-
-  useEffect(() => {
-    mountedRef.current = true;
-    connect();
-
-    return () => {
-      mountedRef.current = false;
-      clearReconnectTimer();
-      wsRef.current?.close(1000, "component unmounted");
-      wsRef.current = null;
-    };
-  }, [connect]);
+  const [connected] = useState(true); // SSE connects per-request — always "ready"
+  const activeStream = useRef<SSEConnection | null>(null);
 
   const send = useCallback(
     (content: string) => {
-      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+      if (!conversationId) return;
+      const token = getToken();
+      if (!token) return;
+
+      // Cancel any in-flight stream
+      activeStream.current?.cancel();
+
+      // Optimistically add user message
       setMessages((prev) => [
         ...prev,
         { id: crypto.randomUUID(), role: "user", content },
       ]);
-      wsRef.current.send(JSON.stringify({ content }));
       setStreaming({ content: "", currentAgent: null, agentsUsed: [], citations: [] });
+
+      activeStream.current = streamChat(
+        conversationId,
+        token,
+        content,
+        // onFrame
+        (frame) => {
+          switch (frame.type) {
+            case "agent_start":
+              setStreaming((s) => ({
+                content: s?.content ?? "",
+                currentAgent: frame.agent as string,
+                agentsUsed: [...(s?.agentsUsed ?? []), frame.agent as string],
+                citations: s?.citations ?? [],
+              }));
+              break;
+
+            case "token":
+              setStreaming((s) => ({
+                content: (s?.content ?? "") + (frame.delta as string),
+                currentAgent: s?.currentAgent ?? null,
+                agentsUsed: s?.agentsUsed ?? [],
+                citations: s?.citations ?? [],
+              }));
+              break;
+
+            case "citation":
+              setStreaming((s) => ({
+                content: s?.content ?? "",
+                currentAgent: s?.currentAgent ?? null,
+                agentsUsed: s?.agentsUsed ?? [],
+                citations: [
+                  ...(s?.citations ?? []),
+                  {
+                    source_title: frame.source_title as string,
+                    source_url: frame.source_url as string | undefined,
+                    snippet: frame.snippet as string | undefined,
+                  },
+                ],
+              }));
+              break;
+
+            case "final":
+              setMessages((prev) => [
+                ...prev,
+                {
+                  id: frame.message_id as string,
+                  role: "assistant",
+                  content: frame.content as string,
+                  agents_used: frame.agents_used as string[],
+                  citations: frame.citations as Citation[],
+                },
+              ]);
+              setStreaming(null);
+              break;
+
+            case "error":
+              setStreaming(null);
+              break;
+          }
+        },
+        // onDone
+        () => {
+          setStreaming(null);
+          activeStream.current = null;
+        },
+        // onError
+        (_err) => {
+          setStreaming(null);
+          activeStream.current = null;
+        },
+      );
     },
-    []
+    [conversationId],
   );
 
   const loadHistory = useCallback((history: Message[]) => {
