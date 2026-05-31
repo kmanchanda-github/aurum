@@ -169,7 +169,21 @@ if _mcp_http_app is not None:
     logger.info("mcp server mounted", path="/mcp")
 
 # ── Serve React SPA (production / HF Spaces) ─────────────────────────────────
-# Must be last — StaticFiles with html=True is a catch-all for all unmatched paths.
+# StaticFiles serves assets. A catch-all route serves index.html for all
+# unknown paths so React Router handles client-side navigation (e.g. /login,
+# /dashboard) without the browser getting a 404 from FastAPI.
 _ui_dist = Path("ui/dist")
 if _ui_dist.exists():
-    app.mount("/", StaticFiles(directory=str(_ui_dist), html=True), name="ui")
+    from fastapi.responses import FileResponse
+
+    # Serve compiled assets (JS/CSS bundles) as static files
+    _assets_dir = _ui_dist / "assets"
+    if _assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=str(_assets_dir)), name="assets")
+
+    # Catch-all: return index.html for every unknown path so React Router
+    # can handle client-side routes like /login, /dashboard, /portfolio etc.
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def spa_fallback(full_path: str):
+        """SPA fallback — serves index.html for all unmatched paths."""
+        return FileResponse(str(_ui_dist / "index.html"))
