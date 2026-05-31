@@ -217,6 +217,7 @@
     <a class="nav-item" onclick="navTo('alembic')">Alembic</a>
     <div class="nav-section">Testing</div>
     <a class="nav-item" onclick="navTo('pytest')">pytest</a>
+    <a class="nav-item" onclick="navTo('fastmcp')">FastMCP / MCP</a>
   </nav>
   <div id="sidebar-footer">
     <div>© 2024 Kapil Manchanda</div>
@@ -1265,6 +1266,57 @@ os.environ[<span class="str">"USE_IN_MEMORY_CACHE"</span>] = <span class="str">"
                 <a class="ref-link" href="https://pytest-asyncio.readthedocs.io/" target="_blank">pytest-asyncio</a>
                 <a class="ref-link" href="https://pytest-cov.readthedocs.io/" target="_blank">pytest-cov</a>
                 <a class="ref-link" href="https://docs.pytest.org/en/stable/reference/fixtures.html" target="_blank">pytest Fixtures</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FastMCP / MCP Server -->
+    <div class="section" id="fastmcp">
+      <div class="section-header">
+        <div class="section-icon" style="background:rgba(212,168,67,0.15)">🔌</div>
+        <div class="section-meta">
+          <h2>FastMCP — MCP Server</h2>
+          <p>8 finance tools exposed via Model Context Protocol for Claude Desktop</p>
+        </div>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-card-header">
+            <div class="tech-logo" style="background:rgba(212,168,67,0.15)">🔌</div>
+            <div class="tech-title">
+              <h3>FastMCP</h3>
+              <div class="version">fastmcp>=2.0.0 · optional [mcp] extra</div>
+              <div class="tagline">Python framework for building MCP servers</div>
+            </div>
+          </div>
+          <div class="tech-card-body">
+            <p>FastMCP lets you build Model Context Protocol servers using plain Python functions decorated with <code>@mcp.tool()</code>. It handles the MCP wire protocol, tool schema generation, and both transport modes (stdio and streamable-http) with a single <code>mcp.run(transport=...)</code> call.</p>
+            <p>Aurum's MCP server (<code>mcp_server/server.py</code>) exposes 8 tools: live stock quotes, market overview, price history, financial news, knowledge base search, portfolio analysis, Monte Carlo goal projection, and RAG-grounded Q&A.</p>
+            <div class="why-box">
+              <strong>Three deployment modes, one codebase</strong>
+              <p><strong>stdio</strong> — Claude Desktop launches the server as a child process; communication over stdin/stdout, no network port, no auth needed.<br>
+              <strong>streamable-http (standalone)</strong> — <code>MCP_TRANSPORT=streamable-http</code> binds a port; protected with <code>MCP_API_KEY</code>.<br>
+              <strong>Mounted in FastAPI</strong> — <code>MCP_ENABLED=true</code> mounts <code>mcp.http_app()</code> at <code>/mcp</code> inside the existing FastAPI app. Used in Docker and HF Spaces — no extra container or port. Claude Desktop connects via <code>npx mcp-remote https://host/mcp</code>.</p>
+            </div>
+            <pre><code><span class="cm"># mcp_server/server.py — a tool takes &lt;1 min to add</span>
+<span class="kw">@mcp</span>.tool()
+<span class="kw">async def</span> <span class="fn">get_stock_quote</span>(symbol: <span class="tp">str</span>) -> <span class="tp">dict</span>:
+    <span class="str">"""Real-time price, change, 52-week range for any ticker."""</span>
+    quote = <span class="kw">await</span> _market().get_quote(symbol.upper())
+    <span class="kw">return</span> {<span class="str">"symbol"</span>: quote.symbol, <span class="str">"price"</span>: quote.price, ...}
+
+<span class="cm"># src/api/main.py — mount for HF Spaces / Docker</span>
+<span class="kw">if</span> settings.mcp_enabled:
+    app.mount(<span class="str">"/mcp"</span>, _mcp_server.http_app(), name=<span class="str">"mcp"</span>)</code></pre>
+            <div class="refs">
+              <strong>Learn More</strong>
+              <div class="ref-links">
+                <a class="ref-link" href="https://github.com/jlowin/fastmcp" target="_blank">FastMCP GitHub</a>
+                <a class="ref-link" href="mcp.html">Aurum MCP Docs</a>
+                <a class="ref-link" href="https://modelcontextprotocol.io/" target="_blank">MCP Spec</a>
               </div>
             </div>
           </div>

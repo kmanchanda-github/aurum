@@ -115,6 +115,53 @@ Restart Claude Desktop. You'll see the Aurum tools available in the tools menu.
 
 ---
 
+## Hugging Face Spaces — Claude Desktop via Remote MCP
+
+When deployed to HF Spaces, the MCP server runs **inside the existing FastAPI container** mounted at `/mcp` on port 7860 — no extra container or port needed.
+
+```
+Claude Desktop  →  npx mcp-remote  →  https://username-aurum.hf.space/mcp
+     stdio           (local bridge)              (HF Spaces, port 7860)
+```
+
+**Step 1 — Set HF Space secrets:**
+
+| Secret | Value |
+|---|---|
+| `ANTHROPIC_API_KEY` (or OpenAI) | Your LLM API key |
+| `SECRET_KEY` | Random 32-char string |
+| `MCP_API_KEY` | Any strong secret to authenticate Claude Desktop |
+
+`MCP_ENABLED=true` is already set in `Dockerfile.hf` — no extra Space variable needed.
+
+**Step 2 — Install mcp-remote locally:**
+```bash
+npm install -g mcp-remote
+```
+
+**Step 3 — Configure Claude Desktop:**
+```json
+{
+  "mcpServers": {
+    "aurum-finance": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://YOUR_USERNAME-aurum.hf.space/mcp",
+        "--header",
+        "X-API-Key:YOUR_MCP_API_KEY"
+      ]
+    }
+  }
+}
+```
+
+Replace `YOUR_USERNAME` and `YOUR_MCP_API_KEY`, then restart Claude Desktop.
+
+> **Always set `MCP_API_KEY` for HF Spaces.** The URL is public — without it anyone on the internet can call your tools.
+
+---
+
 ## Remote HTTP Deployment
 
 For team or browser-based access, run with the streamable-http transport and protect

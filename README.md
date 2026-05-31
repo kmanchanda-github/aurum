@@ -116,6 +116,45 @@ git push hf main
 | **News** | Financial news | Google News RSS |
 | **Tax** | Tax education | ChromaDB RAG |
 
+## MCP Server
+
+Aurum exposes 8 finance tools via the [Model Context Protocol](mcp_server/README.md), enabling Claude Desktop to query live market data, analyze portfolios, and run Monte Carlo projections directly from a conversation.
+
+**Local (Claude Desktop stdio):**
+```bash
+pip install -e ".[mcp]"
+python3 -m mcp_server.server
+```
+Add to `claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "aurum-finance": {
+      "command": "python3",
+      "args": ["-m", "mcp_server.server"],
+      "cwd": "/absolute/path/to/Aurum",
+      "env": { "USE_IN_MEMORY_CACHE": "true" }
+    }
+  }
+}
+```
+
+**Remote (Hugging Face Spaces or any HTTP host):**
+
+The MCP server mounts automatically at `/mcp` when `MCP_ENABLED=true` (set in `Dockerfile.hf` and `docker-compose.yml`). Claude Desktop connects via `mcp-remote`:
+```json
+{
+  "mcpServers": {
+    "aurum-finance": {
+      "command": "npx",
+      "args": ["mcp-remote", "https://YOUR_USERNAME-aurum.hf.space/mcp",
+               "--header", "X-API-Key:YOUR_MCP_API_KEY"]
+    }
+  }
+}
+```
+Set `MCP_API_KEY` in HF Space secrets to protect the public endpoint. See [`mcp_server/README.md`](mcp_server/README.md) for full setup.
+
 ## Tech Stack
 
 - **Backend**: Python 3.12, FastAPI, LangGraph, LangChain
