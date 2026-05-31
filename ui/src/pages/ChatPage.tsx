@@ -33,6 +33,15 @@ export default function ChatPage() {
 
   const { messages, streaming, connected, send, loadHistory } = useChat(activeConvId);
 
+  // Refresh sidebar title as soon as streaming completes (first message sets the title)
+  const prevStreamingRef = useRef<typeof streaming>(null);
+  useEffect(() => {
+    if (prevStreamingRef.current !== null && streaming === null) {
+      qc.invalidateQueries({ queryKey: ["conversations"] });
+    }
+    prevStreamingRef.current = streaming;
+  }, [streaming, qc]);
+
   const { data: conversations } = useQuery({
     queryKey: ["conversations"],
     queryFn: () => chatApi.listConversations().then((r) => r.data),

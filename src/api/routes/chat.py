@@ -121,9 +121,12 @@ async def chat_stream(
             ).scalar_one_or_none()
             if not conv:
                 conv = Conversation(
-                    id=conversation_id, user_id=user.id, title=content[:80]
+                    id=conversation_id, user_id=user.id, title=content[:60]
                 )
                 sess.add(conv)
+            elif conv.title in ("New Conversation", "", None):
+                # First real message — replace the placeholder title
+                conv.title = content[:60] + ("…" if len(content) > 60 else "")
             sess.add(
                 Message(
                     conversation_id=conversation_id, role="user", content=content
