@@ -35,11 +35,6 @@ import sys
 from pathlib import Path
 from typing import Any
 
-# ── Env defaults (before any Aurum imports trigger pydantic-settings) ─────────
-os.environ.setdefault("USE_IN_MEMORY_CACHE", "true")
-os.environ.setdefault("USE_SQLITE", "true")
-os.environ.setdefault("SECRET_KEY", "mcp-server-placeholder-not-used-for-auth")
-
 # Add project root to path so `src.*` imports work regardless of cwd
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -453,24 +448,28 @@ def ask_finance_question(question: str, categories: list[str] | None = None) -> 
     }
 
 
-# ── Auth middleware for streamable-http transport ─────────────────────────────
+# ── Auth middleware factory for streamable-http transport ─────────────────────
+# Not used in the mounted-in-FastAPI scenario — main.py adds its own equivalent.
+# Only wired in main() for the standalone streamable-http transport.
 
-_MCP_API_KEY = os.getenv("MCP_API_KEY", "")
-
-
-async def _api_key_middleware(request, call_next):
-    """Reject requests that don't carry the correct X-API-Key header (HTTP only)."""
-    if _MCP_API_KEY:
-        provided = request.headers.get("x-api-key", "")
-        if provided != _MCP_API_KEY:
+def _make_api_key_middleware(api_key: str):
+    async def _middleware(request, call_next):
+        if request.headers.get("x-api-key", "") != api_key:
             from starlette.responses import JSONResponse
             return JSONResponse({"error": "Unauthorized"}, status_code=401)
-    return await call_next(request)
+        return await call_next(request)
+    return _middleware
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 def main() -> None:
+    # Apply standalone-only defaults — only safe here because we're the top-level
+    # process, not being imported as a module inside a running FastAPI app.
+    os.environ.setdefault("USE_IN_MEMORY_CACHE", "true")
+    os.environ.setdefault("USE_SQLITE", "true")
+    os.environ.setdefault("SECRET_KEY", "mcp-server-placeholder-not-used-for-auth")
+
     transport = os.getenv("MCP_TRANSPORT", "stdio").lower()
 
     if transport == "stdio":
@@ -479,10 +478,11 @@ def main() -> None:
     elif transport in ("streamable-http", "http"):
         host = os.getenv("MCP_HOST", "0.0.0.0")
         port = int(os.getenv("MCP_PORT", "8002"))
+        api_key = os.getenv("MCP_API_KEY", "")
 
-        if _MCP_API_KEY:
-            mcp.add_middleware(_api_key_middleware)
-            print(f"[aurum-mcp] API key auth enabled", flush=True)
+        if api_key:
+            mcp.add_middleware(_make_api_key_middleware(api_key))
+            print("[aurum-mcp] API key auth enabled", flush=True)
         else:
             print(
                 "[aurum-mcp] WARNING: MCP_API_KEY not set — server is open to anyone on the network.",
