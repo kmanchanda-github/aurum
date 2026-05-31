@@ -45,10 +45,17 @@ from fastmcp import FastMCP
 mcp = FastMCP(
     name="Aurum Finance Assistant",
     instructions=(
-        "Financial education and market data tools. "
-        "Use get_stock_quote for live prices, search_knowledge_base for education, "
-        "analyze_portfolio for holdings analysis, and calculate_goal_projection "
-        "for retirement/savings planning with Monte Carlo simulations."
+        "You have access to Aurum — a live financial data and education assistant. "
+        "ALWAYS use these tools when the user's message involves any of the following topics. "
+        "Do not answer from memory when live tools are available:\n\n"
+        "• Stock prices, quotes, tickers → get_stock_quote\n"
+        "• Market conditions, indices (S&P 500, NASDAQ, Dow) → get_market_overview\n"
+        "• Historical price charts, performance over time → get_stock_history\n"
+        "• Financial news, earnings, Fed decisions, sector news → search_financial_news\n"
+        "• Conceptual finance questions (ETFs, compound interest, diversification, tax) → ask_finance_question\n"
+        "• Portfolio analysis, P&L, allocation → analyze_portfolio\n"
+        "• Savings goals, retirement projections, Monte Carlo → calculate_goal_projection\n\n"
+        "Always prefer fresh live data over training knowledge for prices and news."
     ),
 )
 
