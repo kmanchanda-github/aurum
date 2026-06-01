@@ -74,22 +74,60 @@ python -m src.rag.ingest --seed-dir src/rag/seed
 
 ## Hugging Face Spaces Deploy
 
-```bash
-# Build single-container image
-docker build -f Dockerfile.hf -t aurum-hf .
-docker run -p 7860:7860 \
-  -e ANTHROPIC_API_KEY=sk-ant-... \
-  -e SECRET_KEY=your-secret \
-  aurum-hf
-open http://localhost:7860
+### Architecture differences (HF free tier vs local Docker)
 
-# Deploy to HF Spaces
-huggingface-cli login
-huggingface-cli repo create aurum --type space --space-sdk docker
-git remote add hf https://huggingface.co/spaces/{username}/aurum
-git push hf main
-# Set ANTHROPIC_API_KEY and SECRET_KEY in HF Space secrets
+| Component | Local Docker | HF Spaces (free) |
+|---|---|---|
+| **Database** | PostgreSQL | SQLite (`USE_SQLITE=true`) |
+| **Cache** | Redis | In-process TTLCache (`USE_IN_MEMORY_CACHE=true`) |
+| **ChromaDB** | Persistent Docker volume | Ephemeral — re-seeded on every cold start |
+| **Filesystem** | Persistent volumes | Ephemeral — wiped on every restart/rebuild |
+| **Chat transport** | WebSocket | SSE (`POST /api/chat/stream`) — HF proxy blocks WS upgrades |
+| **Containers** | 5 services (api, postgres, redis, chroma, ui) | Single container |
+| **Port** | 8000 (API) + 5173 (UI dev) | 7860 |
+
+> **Data persistence**: All users, conversations, and portfolios are lost on every HF Spaces restart because the filesystem is ephemeral. A demo user (`demo@aurum.ai` / `AurumDemo2026!`) and the RAG knowledge base (51 articles) are automatically re-seeded on every cold start. For persistent storage, connect a free [Neon](https://neon.tech) or [Supabase](https://supabase.com) Postgres database via the `DATABASE_URL` secret.
+
+### Deploy steps
+
+```bash
+# 1. Login to Hugging Face
+hf auth login
+
+# 2. Create Space (one time)
+python3 -c "
+from huggingface_hub import HfApi
+HfApi().create_repo('your-username/aurum', repo_type='space', space_sdk='docker')
+"
+
+# 3. Set required secrets in HF Space settings
+#    OPENAI_API_KEY (or ANTHROPIC_API_KEY)
+#    SECRET_KEY       — random string for JWT signing
+#    MCP_API_KEY      — protects the /mcp endpoint
+#    ADMIN_EMAILS     — comma-separated emails for admin access
+
+# 4. Set Space variables
+#    LLM_PROVIDER=openai   (or anthropic)
+#    LLM_MODEL=gpt-4o-mini
+#    USE_SQLITE=true
+#    USE_IN_MEMORY_CACHE=true
+#    MCP_ENABLED=true
+
+# 5. Upload code
+python3 -c "
+from huggingface_hub import HfApi
+HfApi().upload_folder(
+    repo_id='your-username/aurum', repo_type='space', folder_path='.',
+    ignore_patterns=['.git/*','node_modules/*','__pycache__/*','.env','tests/*','docs/*','ui/dist/*'],
+)
+"
 ```
+
+### Pause / resume for demos
+
+HF Spaces can be paused to avoid cold starts and save compute:
+- **Pause**: Space settings → ⋯ → **Pause space** (instant, free while paused)
+- **Resume**: same menu → **Resume** (~60 sec cold start including RAG re-seed)
 
 ## API Reference
 

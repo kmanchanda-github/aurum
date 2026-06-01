@@ -190,6 +190,7 @@
 
     <div class="nav-section">Reference</div>
     <a class="nav-item" onclick="navTo('api')">API Endpoints</a>
+    <a class="nav-item" onclick="navTo('hf-deploy')">HF Spaces Deploy</a>
     <a class="nav-item" onclick="navTo('troubleshoot')">Troubleshooting</a>
   </nav>
   <div id="sidebar-footer">
@@ -1060,6 +1061,72 @@ docker compose exec postgres psql -U aurum -d aurum
 
 <span class="comment"># Check migration status</span>
 docker compose exec api alembic current</code></pre>
+    </section>
+
+    <section class="section" id="hf-deploy">
+      <h2>☁️ Hugging Face Spaces Deployment</h2>
+
+      <h3>Architecture Differences vs Local Docker</h3>
+      <p>HF Spaces free tier runs a <strong>single container</strong> with no external services. Aurum adapts automatically via environment variables:</p>
+
+      <table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin:1rem 0">
+        <thead>
+          <tr style="background:var(--bg3)">
+            <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)">Component</th>
+            <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)">Local Docker</th>
+            <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)">HF Spaces (free)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border)"><strong>Database</strong></td><td style="padding:8px 12px;border-bottom:1px solid var(--border)">PostgreSQL</td><td style="padding:8px 12px;border-bottom:1px solid var(--border)">SQLite (<code>USE_SQLITE=true</code>)</td></tr>
+          <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border)"><strong>Cache</strong></td><td style="padding:8px 12px;border-bottom:1px solid var(--border)">Redis</td><td style="padding:8px 12px;border-bottom:1px solid var(--border)">In-process TTLCache (<code>USE_IN_MEMORY_CACHE=true</code>)</td></tr>
+          <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border)"><strong>ChromaDB</strong></td><td style="padding:8px 12px;border-bottom:1px solid var(--border)">Persistent Docker volume</td><td style="padding:8px 12px;border-bottom:1px solid var(--border)">Ephemeral — auto re-seeded on cold start</td></tr>
+          <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border)"><strong>Filesystem</strong></td><td style="padding:8px 12px;border-bottom:1px solid var(--border)">Persistent named volumes</td><td style="padding:8px 12px;border-bottom:1px solid var(--border)">Ephemeral — wiped on every restart/rebuild</td></tr>
+          <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border)"><strong>Chat transport</strong></td><td style="padding:8px 12px;border-bottom:1px solid var(--border)">WebSocket (<code>/api/chat/ws</code>)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border)">SSE (<code>POST /api/chat/stream</code>) — HF proxy blocks WS</td></tr>
+          <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border)"><strong>Port</strong></td><td style="padding:8px 12px;border-bottom:1px solid var(--border)">8000 (API) + 5173 (UI)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border)">7860 (single port)</td></tr>
+          <tr><td style="padding:8px 12px"><strong>SQL functions</strong></td><td style="padding:8px 12px">Full Postgres (array_agg, etc.)</td><td style="padding:8px 12px">SQLite subset — Postgres-only functions must be avoided</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Ephemeral Data — What Gets Wiped on Restart</h3>
+      <p>Because HF Spaces free tier has no persistent disk, every container restart wipes:</p>
+      <ul>
+        <li>All registered users → mitigated by <strong>auto-seeded demo user</strong> (<code>demo@aurum.ai</code> / <code>AurumDemo2026!</code>)</li>
+        <li>All conversations, portfolios, goals → lost on restart</li>
+        <li>ChromaDB embeddings → mitigated by <strong>auto-seed on cold start</strong> (51 articles re-embedded, ~60s)</li>
+      </ul>
+      <p>For persistent data across restarts, connect a free <a href="https://neon.tech" target="_blank" style="color:var(--gold)">Neon</a> or <a href="https://supabase.com" target="_blank" style="color:var(--gold)">Supabase</a> Postgres database by setting <code>DATABASE_URL</code> as a Space secret and removing <code>USE_SQLITE=true</code>.</p>
+
+      <h3>Required HF Space Secrets</h3>
+      <table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin:1rem 0">
+        <thead>
+          <tr style="background:var(--bg3)">
+            <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)">Secret</th>
+            <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)">Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border)"><code>OPENAI_API_KEY</code> or <code>ANTHROPIC_API_KEY</code></td><td style="padding:8px 12px;border-bottom:1px solid var(--border)">LLM provider key</td></tr>
+          <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border)"><code>SECRET_KEY</code></td><td style="padding:8px 12px;border-bottom:1px solid var(--border)">JWT signing secret (random 32+ char string)</td></tr>
+          <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border)"><code>MCP_API_KEY</code></td><td style="padding:8px 12px;border-bottom:1px solid var(--border)">Protects the public <code>/mcp</code> endpoint</td></tr>
+          <tr><td style="padding:8px 12px"><code>ADMIN_EMAILS</code></td><td style="padding:8px 12px">Comma-separated emails that see the Admin tab</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Required HF Space Variables</h3>
+      <pre><code>USE_SQLITE=true
+USE_IN_MEMORY_CACHE=true
+MCP_ENABLED=true
+LLM_PROVIDER=openai
+LLM_MODEL=gpt-4o-mini</code></pre>
+
+      <h3>Pause / Resume for Demos</h3>
+      <p>To avoid the ~60s cold start during a live demo, wake the Space before recording:</p>
+      <ul>
+        <li><strong>Pause:</strong> Space settings → ⋯ → <em>Pause space</em> — free while paused</li>
+        <li><strong>Resume:</strong> same menu → <em>Resume</em> → wait for RUNNING status</li>
+        <li>Auto-sleeps after 48h of no traffic on free tier</li>
+      </ul>
     </section>
 
     <div style="height:60px"></div>
