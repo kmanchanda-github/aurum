@@ -115,21 +115,28 @@ async def list_conversations(
             )
         ).scalar_one()
 
-        # Get token totals from chat_traces
+        # Get token totals — coalesce+sum works on both SQLite and Postgres
         token_row = (
             await db.execute(
                 select(
                     func.coalesce(func.sum(ChatTrace.total_input_tokens), 0),
                     func.coalesce(func.sum(ChatTrace.total_output_tokens), 0),
-                    func.array_agg(ChatTrace.selected_agents),
                 ).where(ChatTrace.conversation_id == conv.id)
             )
         ).one()
         t_in, t_out = int(token_row[0]), int(token_row[1])
 
-        # Flatten agents_used across all traces
+        # Fetch selected_agents per trace in Python — avoids array_agg
+        # which is Postgres-only (not available in SQLite)
+        trace_agents = (
+            await db.execute(
+                select(ChatTrace.selected_agents).where(
+                    ChatTrace.conversation_id == conv.id
+                )
+            )
+        ).scalars().all()
         agents_set: set[str] = set()
-        for agents_list in (token_row[2] or []):
+        for agents_list in trace_agents:
             if agents_list:
                 agents_set.update(agents_list)
 
