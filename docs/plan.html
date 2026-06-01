@@ -683,8 +683,10 @@
         <p>
           Aurum is a production-ready, multi-agent AI system for financial literacy.
           Users interact through a streaming chat interface backed by six parallel
-          specialist agents — each grounded in a private RAG corpus and real-time
-          market data — orchestrated by a LangGraph supervisor.
+          specialist agents orchestrated by a LangGraph supervisor. RAG-consuming
+          agents (qa, tax) retrieve from a private ChromaDB knowledge base; live-data
+          agents (market, portfolio, news, goals) skip RAG entirely and use yfinance,
+          PostgreSQL, and RSS — saving ~100ms per query.
         </p>
       </div>
 
@@ -692,8 +694,8 @@
         <h3>🎯 Core Value Proposition</h3>
         <ul>
           <li>Six specialist agents run in parallel via Send-fanout</li>
-          <li>Typed WebSocket frames for real-time streaming UX</li>
-          <li>RAG over 51 curated financial education articles</li>
+          <li>SSE streaming (WebSocket on local Docker, SSE on HF Spaces/proxies)</li>
+          <li>Selective RAG — ChromaDB queried only for qa/tax agents, skipped for live-data agents</li>
           <li>Pluggable LLM providers — swap without code changes</li>
           <li>MCP server — 8 tools for Claude Desktop (stdio + HTTP + HF Spaces)</li>
           <li>Pluggable market data adapters with registry fallback</li>
@@ -744,8 +746,8 @@
       <div class="goal-item">
         <div class="goal-icon">⚡</div>
         <div class="goal-text">
-          <strong>Real-Time WebSocket Streaming</strong>
-          <span>Typed frame protocol: <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">agent_start</code>, <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">token</code>, <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">citation</code>, <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">final</code>. Exponential backoff reconnect.</span>
+          <strong>Real-Time Token Streaming</strong>
+          <span>Typed frame protocol: <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">agent_start</code>, <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">token</code>, <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">citation</code>, <code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">final</code>. WebSocket on local Docker; SSE (<code style="font-family:monospace;font-size:0.8rem;color:var(--accent)">POST /api/chat/stream</code>) on HF Spaces — proxy-compatible.</span>
         </div>
       </div>
 
@@ -760,8 +762,8 @@
       <div class="goal-item">
         <div class="goal-icon">🔍</div>
         <div class="goal-text">
-          <strong>ChromaDB RAG Corpus</strong>
-          <span>51 financial education articles across 5 categories. Query-time category filtering for precision retrieval.</span>
+          <strong>Selective ChromaDB RAG</strong>
+          <span>51 financial education articles across 5 categories. RAG runs only for qa and tax agents — skipped for market, portfolio, news, goals which use live data. Saves ~100ms per live-data query.</span>
         </div>
       </div>
 
@@ -855,7 +857,7 @@
           </div>
           <div class="day-exit">
             <div class="day-exit-label">Exit Criteria</div>
-            <p>"What's AAPL at?" → streamed answer with live market data and RAG citations.</p>
+            <p>"What's AAPL at?" → streamed answer with live market data (no RAG — market agent uses yfinance only).</p>
           </div>
         </div>
       </div>

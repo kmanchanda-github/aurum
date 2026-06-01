@@ -143,7 +143,7 @@ footer strong{color:var(--accent)}
   <h3>End-to-End System Overview</h3>
   <div class="mermaid">
 flowchart TD
-    U["🌐 User Browser\nReact + Vite SPA"] -->|"REST + WebSocket"| GW
+    U["🌐 User Browser\nReact SPA"] -->|"REST + SSE\n(WebSocket local only)"| GW
 
     subgraph GW["FastAPI Gateway (async uvicorn)"]
         MW["Auth/JWT · Rate Limit · Request-ID"]
@@ -153,13 +153,13 @@ flowchart TD
     GW -->|"astream_events"| LG
 
     subgraph LG["LangGraph StateGraph"]
-        S["supervisor_route\n(LLM routing decision)"] --> RAG["retrieve_rag\n(ChromaDB query)"]
-        RAG -->|"parallel Send fanout"| A1["qa_agent"]
-        RAG --> A2["portfolio_agent"]
-        RAG --> A3["market_agent"]
-        RAG --> A4["goals_agent"]
-        RAG --> A5["news_agent"]
-        RAG --> A6["tax_agent"]
+        S["supervisor_route\n(LLM routing decision)"] --> RAG["retrieve_rag\n(skipped if no qa/tax)"]
+        RAG -->|"parallel Send fanout"| A1["qa_agent 📚 RAG"]
+        RAG --> A2["portfolio_agent 📊 DB"]
+        RAG --> A3["market_agent 📈 live"]
+        RAG --> A4["goals_agent 🎯 Monte Carlo"]
+        RAG --> A5["news_agent 📰 RSS"]
+        RAG --> A6["tax_agent 📚 RAG"]
         A1 & A2 & A3 & A4 & A5 & A6 --> SY["synthesizer\n(if multi-agent)"]
         SY --> PT["persist_turn"]
     end
@@ -184,7 +184,7 @@ flowchart TD
       <ul>
         <li>React 18 + Vite + TypeScript SPA</li>
         <li>6 pages: Chat, Portfolio, Market, Goals, News, Settings</li>
-        <li><code>useChat</code> hook — WS lifecycle + exponential backoff reconnect</li>
+        <li><code>useChat</code> hook — SSE fetch streaming (WebSocket on local Docker)</li>
         <li>Recharts: AllocationPie, PerformanceChart, MonteCarloChart</li>
         <li>TanStack Query for REST data fetching + caching</li>
       </ul>
@@ -242,17 +242,23 @@ flowchart TD
   </div>
 
   <h3>LangGraph Graph Flow</h3>
+  <p style="font-size:0.85rem;color:var(--text2);margin-bottom:0.5rem">
+    <strong>Key optimisation:</strong> <code>retrieve_rag</code> is skipped entirely when no RAG-consuming agent (qa, tax) is selected.
+    Market, portfolio, news, and goals agents use live data — running ChromaDB for them wastes ~100ms and injects irrelevant context.
+  </p>
   <div class="mermaid">
 flowchart LR
     ST(["START"]) --> SR["supervisor_route\nLLM → JSON routing decision"]
-    SR --> RR["retrieve_rag\nChromaDB category query"]
+    SR -->|"qa or tax selected"| RR["retrieve_rag\nChromaDB category query"]
+    SR -->|"market/portfolio/news/goals only\n→ RAG skipped"| FA["Send fanout"]
     RR -->|"confidence < 0.6"| CL["clarify_node\nAsk for clarification"]
-    RR -->|"Send fanout"| QA["qa_agent"]
-    RR --> PA["portfolio_agent"]
-    RR --> MA["market_agent"]
-    RR --> GA["goals_agent"]
-    RR --> NA["news_agent"]
-    RR --> TA["tax_agent"]
+    RR -->|"Send fanout"| FA
+    FA --> QA["qa_agent 📚"]
+    FA --> PA["portfolio_agent 📊"]
+    FA --> MA["market_agent 📈"]
+    FA --> GA["goals_agent 🎯"]
+    FA --> NA["news_agent 📰"]
+    FA --> TA["tax_agent 📚"]
     QA & PA & MA & GA & NA & TA -->|"multi-agent"| SY["synthesizer\nMerge + dedupe citations\n+ disclaimer"]
     QA & PA & MA & GA & NA & TA -->|"single agent"| PT
     SY --> PT["persist_turn\nSave message to DB"]
@@ -285,14 +291,14 @@ flowchart LR
   <h3>Six Specialist Agents</h3>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Agent</th><th>Triggered By</th><th>RAG Categories</th><th>Data Sources</th><th>Key Capability</th></tr></thead>
+      <thead><tr><th>Agent</th><th>Triggered By</th><th>Uses RAG?</th><th>Data Sources</th><th>Key Capability</th></tr></thead>
       <tbody>
-        <tr><td><span class="badge badge-blue">qa</span></td><td>explaining, what is, how does, education</td><td>investing, portfolio</td><td>ChromaDB RAG</td><td>General financial education grounded in knowledge base</td></tr>
-        <tr><td><span class="badge badge-gold">portfolio</span></td><td>my portfolio, holdings, allocation, P&amp;L</td><td>portfolio</td><td>PostgreSQL holdings</td><td>Analyzes user's actual positions, cost basis, performance</td></tr>
-        <tr><td><span class="badge badge-green">market</span></td><td>price, AAPL, stock, index, S&amp;P, market</td><td>market</td><td>yfinance via registry</td><td>Real-time quotes, price history, indices, market movers</td></tr>
-        <tr><td><span class="badge badge-gold">goals</span></td><td>retirement, saving for, target, 401k</td><td>goals</td><td>PostgreSQL goals</td><td>Goal progress, Monte Carlo projections, timeline analysis</td></tr>
-        <tr><td><span class="badge badge-blue">news</span></td><td>news, latest, today, headline, what happened</td><td>market</td><td>PyGoogleNews RSS</td><td>Financial news with topic filtering and recency ranking</td></tr>
-        <tr><td><span class="badge badge-red">tax</span></td><td>capital gains, IRA, 401k, HSA, tax strategy</td><td>tax</td><td>ChromaDB RAG</td><td>Tax education, account types — strictly educational (no advice)</td></tr>
+        <tr><td><span class="badge badge-blue">qa</span></td><td>explaining, what is, how does, education</td><td>✅ investing, portfolio</td><td>ChromaDB RAG</td><td>General financial education grounded in knowledge base</td></tr>
+        <tr><td><span class="badge badge-gold">portfolio</span></td><td>my portfolio, holdings, allocation, P&amp;L</td><td>❌ live data only</td><td>PostgreSQL + yfinance live prices</td><td>Analyzes user's actual positions, cost basis, P&amp;L, allocation</td></tr>
+        <tr><td><span class="badge badge-green">market</span></td><td>price, AAPL, stock, index, S&amp;P, market</td><td>❌ live data only</td><td>yfinance via registry</td><td>Real-time quotes, price history, indices, market movers</td></tr>
+        <tr><td><span class="badge badge-gold">goals</span></td><td>retirement, saving for, target, 401k</td><td>❌ live data only</td><td>PostgreSQL goals + NumPy</td><td>Goal progress, Monte Carlo projections, timeline analysis</td></tr>
+        <tr><td><span class="badge badge-blue">news</span></td><td>news, latest, today, headline, what happened</td><td>❌ live data only</td><td>PyGoogleNews RSS</td><td>Financial news with topic filtering and recency ranking</td></tr>
+        <tr><td><span class="badge badge-red">tax</span></td><td>capital gains, IRA, 401k, HSA, tax strategy</td><td>✅ tax</td><td>ChromaDB RAG</td><td>Tax education, account types — strictly educational (no advice)</td></tr>
       </tbody>
     </table>
   </div>
@@ -308,7 +314,7 @@ flowchart LR
     <span class="cm"># Routing — set by supervisor_route node</span>
     intent:            str | <span class="kw">None</span>           <span class="cm"># "user wants stock price"</span>
     selected_agents:   list[str]             <span class="cm"># ["market", "portfolio"]</span>
-    rag_categories:    list[str]             <span class="cm"># ["market", "portfolio"]</span>
+    rag_categories:    list[str]             <span class="cm"># ["investing", "tax"] — empty if no RAG agents selected</span>
     routing_reason:    str | <span class="kw">None</span>
     needs_followup:    bool                  <span class="cm"># True if confidence &lt; 0.6</span>
 
