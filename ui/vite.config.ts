@@ -10,8 +10,12 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      "/api": { target: "http://localhost:8000", changeOrigin: true },
-      "/ws": { target: "ws://localhost:8000", ws: true, changeOrigin: true },
+      // VITE_PROXY_TARGET lets docker-compose override to http://api:8000
+      // (Docker service name). Falls back to localhost for host-native Vite.
+      "/api": {
+        target: process.env.VITE_PROXY_TARGET ?? "http://localhost:8000",
+        changeOrigin: true,
+      },
     },
   },
 });

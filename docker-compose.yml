@@ -84,8 +84,13 @@ services:
     ports:
       - "5173:5173"
     environment:
-      VITE_API_BASE: http://localhost:8000
-      VITE_WS_BASE: ws://localhost:8000
+      # VITE_PROXY_TARGET: Vite's server-side proxy runs inside the container,
+      # so it must use the Docker service name, not localhost.
+      VITE_PROXY_TARGET: http://api:8000
+      # VITE_API_BASE/WS_BASE are used by the browser (client-side) — keep as
+      # empty string so the browser uses relative URLs through the Vite proxy.
+      VITE_API_BASE: ""
+      VITE_WS_BASE: ""
     networks:
       - aurum_net
 
