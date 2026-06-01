@@ -59,6 +59,31 @@ async def lifespan(app: FastAPI):
         from src.core.database import create_all_tables
         await create_all_tables()
 
+        # ── Demo user seed (HF Spaces / ephemeral SQLite) ─────────────────────
+        # Creates a known demo account on every cold start so users don't lose
+        # access after a container restart wipes the ephemeral SQLite database.
+        _demo_email = "demo@aurum.ai"
+        _demo_password = "AurumDemo2026!"
+        try:
+            from sqlalchemy import select as _select
+            from src.core.database import AsyncSessionLocal as _ASL
+            from src.models.user import User as _User
+            from src.core.security import hash_password as _hp
+            async with _ASL() as _sess:
+                _exists = (await _sess.execute(
+                    _select(_User).where(_User.email == _demo_email)
+                )).scalar_one_or_none()
+                if not _exists:
+                    _sess.add(_User(
+                        email=_demo_email,
+                        password_hash=_hp(_demo_password),
+                        full_name="Demo User",
+                    ))
+                    await _sess.commit()
+                    logger.info("demo user seeded", email=_demo_email)
+        except Exception as _e:
+            logger.warning("demo user seed failed", error=str(_e))
+
         # ── Cache ─────────────────────────────────────────────────────────────
         from src.core.redis_client import make_cache
         app.state.cache = make_cache()
@@ -67,6 +92,16 @@ async def lifespan(app: FastAPI):
         try:
             from src.rag.chroma_store import ChromaStore
             app.state.chroma_store = ChromaStore()
+
+            # Auto-seed knowledge base if empty (e.g. after ephemeral restart)
+            if app.state.chroma_store.count() == 0:
+                logger.info("chroma empty — seeding knowledge base")
+                import asyncio as _asyncio
+                from src.rag.ingest import ingest as _ingest
+                await _asyncio.get_event_loop().run_in_executor(
+                    None, _ingest, "src/rag/seed"
+                )
+                logger.info("rag seeded", count=app.state.chroma_store.count())
         except Exception as exc:
             logger.warning("chroma init failed — RAG disabled", error=str(exc))
             app.state.chroma_store = None
