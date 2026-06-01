@@ -15,7 +15,20 @@ def _last_user_message(messages: list[BaseMessage]) -> str:
     return messages[-1].content if messages else ""
 
 
+# Only qa and tax agents consume retrieved_docs.
+# market, portfolio, news, and goals use live data (yfinance / DB /
+# Monte Carlo) — running ChromaDB for them wastes ~100ms and injects
+# irrelevant context into their prompts.
+_RAG_AGENTS = {"qa", "tax"}
+
+
 async def retrieve_rag(state: dict) -> dict:
+    # Skip ChromaDB entirely if no RAG-consuming agent was selected
+    selected = set(state.get("selected_agents", []))
+    if not selected & _RAG_AGENTS:
+        logger.info("rag skipped — no rag agents selected", agents=list(selected))
+        return {"retrieved_docs": []}
+
     chroma_store = state.get("__chroma_store__")
     if chroma_store is None:
         return {"retrieved_docs": []}

@@ -17,11 +17,18 @@ RAG categories (for knowledge base retrieval):
 - goals: Financial planning and goals
 - market: Market data and analysis
 
+Agent data sources — pick only what the question needs:
+- market, portfolio, news, goals → use LIVE DATA (yfinance, DB, Monte Carlo, RSS). Do NOT add RAG context for these.
+- qa, tax → use KNOWLEDGE BASE (ChromaDB RAG). Select these for conceptual/educational questions.
+
 Rules:
-1. Select 1-3 agents maximum. Prefer fewer.
-2. If the question spans multiple domains, select all relevant agents.
+1. Select 1-3 agents maximum. Prefer the single most relevant agent.
+2. Only combine agents when the question genuinely spans multiple domains
+   (e.g. "how does my portfolio compare to the S&P 500?" → portfolio + market).
 3. Set confidence between 0.0 and 1.0. If < 0.6, set needs_clarification=true.
-4. Always select at least the 'qa' agent as fallback for general questions.
+4. For pure live-data questions (prices, news, portfolio, goals) do NOT add qa.
+   Only add qa when the question is conceptual or educational.
+5. Set rag_categories to [] when no qa or tax agent is selected — RAG is skipped anyway.
 
 Respond ONLY with valid JSON matching this exact schema:
 {
