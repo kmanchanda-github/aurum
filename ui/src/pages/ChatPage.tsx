@@ -28,10 +28,22 @@ export default function ChatPage() {
   const [activeConvId, setActiveConvId] = useState<string | null>(conversationId || null);
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
+  const pendingMessageRef = useRef<string | null>(null);
   const navigate = useNavigate();
   const qc = useQueryClient();
 
   const { messages, streaming, connected, send, loadHistory } = useChat(activeConvId);
+
+  // Fire a pending message once activeConvId is set and send is ready.
+  // Needed for suggestion clicks: the conversation is created async, so
+  // send() would use the stale null-conversationId if called immediately.
+  useEffect(() => {
+    if (activeConvId && pendingMessageRef.current) {
+      const msg = pendingMessageRef.current;
+      pendingMessageRef.current = null;
+      send(msg);
+    }
+  }, [activeConvId, send]);
 
   // Refresh sidebar title as soon as streaming completes (first message sets the title)
   const prevStreamingRef = useRef<typeof streaming>(null);
@@ -142,12 +154,12 @@ export default function ChatPage() {
                   <button
                     key={s}
                     onClick={async () => {
+                      pendingMessageRef.current = s;
                       const res = await chatApi.createConversation(s.slice(0, 60));
                       const conv = res.data;
                       qc.invalidateQueries({ queryKey: ["conversations"] });
                       setActiveConvId(conv.id);
                       navigate(`/chat/${conv.id}`);
-                      setTimeout(() => send(s), 500);
                     }}
                     className="text-left px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors"
                   >
