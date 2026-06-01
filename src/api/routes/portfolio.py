@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -45,11 +45,10 @@ async def create_portfolio(
 @router.get("/{portfolio_id}", response_model=PortfolioDetail)
 async def get_portfolio(
     portfolio_id: str,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
-    request=None,
 ) -> PortfolioDetail:
-    from fastapi import Request
     result = await db.execute(
         select(Portfolio).where(Portfolio.id == portfolio_id, Portfolio.user_id == user.id)
     )
@@ -62,7 +61,25 @@ async def get_portfolio(
     )
     holdings = list(holdings_result.scalars())
 
-    # Enrich with live prices via registry (best-effort)
+    # ── Fetch live prices for all unique symbols in parallel ──────────────────
+    registry = getattr(request.app.state, "registry", None)
+    unique_symbols = list({h.symbol.upper() for h in holdings})
+    prices: dict[str, float] = {}
+    day_changes: dict[str, tuple[float, float]] = {}  # symbol → (change, change_pct)
+
+    if registry and unique_symbols:
+        import asyncio
+        async def _fetch(sym: str) -> None:
+            try:
+                quote = await registry.get_quote(sym)
+                prices[sym] = quote.price
+                day_changes[sym] = (quote.change, quote.change_pct)
+            except Exception:
+                pass  # leave missing — show cost basis only
+
+        await asyncio.gather(*[_fetch(s) for s in unique_symbols])
+
+    # ── Build per-holding details ──────────────────────────────────────────────
     holding_details: list[HoldingDetail] = []
     total_value = 0.0
     total_cost = 0.0
@@ -70,23 +87,59 @@ async def get_portfolio(
 
     for h in holdings:
         detail = HoldingDetail.model_validate(h)
-        cost = float(h.quantity) * float(h.cost_basis)
+        qty = float(h.quantity)
+        cost_per_share = float(h.cost_basis)
+        cost = qty * cost_per_share
         total_cost += cost
+
+        sym = h.symbol.upper()
+        if sym in prices:
+            current_price = prices[sym]
+            current_value = qty * current_price
+            pnl = current_value - cost
+            pnl_pct = (pnl / cost * 100) if cost else 0.0
+            change, change_pct = day_changes.get(sym, (0.0, 0.0))
+
+            detail.current_price = round(current_price, 2)
+            detail.current_value = round(current_value, 2)
+            detail.unrealized_pnl = round(pnl, 2)
+            detail.unrealized_pnl_pct = round(pnl_pct, 2)
+            detail.day_change = round(change, 2)
+            detail.day_change_pct = round(change_pct, 2)
+            total_value += current_value
+
+            asset_class = h.asset_class or "other"
+            allocation_map[asset_class] = allocation_map.get(asset_class, 0.0) + current_value
+        else:
+            # No live price — fall back to cost basis
+            detail.current_price = cost_per_share
+            detail.current_value = round(cost, 2)
+            total_value += cost
+            asset_class = h.asset_class or "other"
+            allocation_map[asset_class] = allocation_map.get(asset_class, 0.0) + cost
+
         holding_details.append(detail)
 
-    allocation: list[AllocationSlice] = []
-    for ac, val in allocation_map.items():
-        allocation.append(AllocationSlice(label=ac, weight=val / total_value if total_value else 0, value=val))
+    # ── Allocation slices ──────────────────────────────────────────────────────
+    allocation: list[AllocationSlice] = [
+        AllocationSlice(
+            label=ac,
+            weight=round(val / total_value, 4) if total_value else 0,
+            value=round(val, 2),
+        )
+        for ac, val in sorted(allocation_map.items(), key=lambda x: -x[1])
+    ]
 
+    unrealized_pnl = total_value - total_cost
     return PortfolioDetail(
         id=portfolio.id,
         name=portfolio.name,
         created_at=portfolio.created_at,
         holdings=holding_details,
-        total_value=total_value or total_cost,
-        total_cost=total_cost,
-        unrealized_pnl=total_value - total_cost,
-        unrealized_pnl_pct=(total_value - total_cost) / total_cost * 100 if total_cost else 0,
+        total_value=round(total_value, 2),
+        total_cost=round(total_cost, 2),
+        unrealized_pnl=round(unrealized_pnl, 2),
+        unrealized_pnl_pct=round(unrealized_pnl / total_cost * 100, 2) if total_cost else 0,
         allocation=allocation,
     )
 
