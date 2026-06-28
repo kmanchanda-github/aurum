@@ -228,10 +228,10 @@ pytest tests/ --cov=src --cov-report=term
 pytest tests/unit/ -q
 
 # With coverage threshold
-pytest tests/ --cov=src --cov-fail-under=70
+pytest tests/ --cov=src --cov-fail-under=80
 ```
 
-The test suite has **163 tests** across 18 files at **75% line coverage**. Coverage includes all six agents, ChromaDB RAG store, adapter registry fallthrough, LLM factory (all providers), synthesizer, persistence node, and API routes (auth, portfolio, goals, market, health, settings). Integration tests use SQLite in-memory and an in-process cache — no external services needed.
+The test suite has **211 tests** across 24 files at **80% line coverage**. Coverage includes all six agents, ChromaDB RAG store, adapter registry fallthrough, LLM factory (all providers), synthesizer, persistence node, Alpha Vantage adapter, Google News adapter, Redis/in-memory cache, and API routes (auth, portfolio, goals, market, news, health, settings, admin). Integration tests use SQLite in-memory and an in-process cache — no external services needed.
 
 ## RAG Implementation
 

@@ -104,6 +104,7 @@ async def test_retrieve_rag_with_mock_store():
         "messages": [HumanMessage(content="what is DCA?")],
         "__chroma_store__": mock_store,
         "rag_categories": ["investing"],
+        "selected_agents": ["qa"],
     }
     result = await retrieve_rag(state)
 
@@ -123,6 +124,7 @@ async def test_retrieve_rag_handles_chroma_exception():
         "messages": [HumanMessage(content="test")],
         "__chroma_store__": mock_store,
         "rag_categories": [],
+        "selected_agents": ["qa"],
     }
     result = await retrieve_rag(state)
     assert result["retrieved_docs"] == []
@@ -142,6 +144,7 @@ async def test_retrieve_rag_no_categories():
     state = {
         "messages": [HumanMessage(content="tax question")],
         "__chroma_store__": mock_store,
+        "selected_agents": ["tax"],
     }
     result = await retrieve_rag(state)
     assert len(result["retrieved_docs"]) == 1

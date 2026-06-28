@@ -81,6 +81,31 @@ def test_get_movers_gainers(client, session_auth_headers):
     assert isinstance(resp.json(), list)
 
 
+def test_get_movers_losers(client, session_auth_headers):
+    resp = client.get("/api/market/movers?type=losers", headers=session_auth_headers)
+    assert resp.status_code == 200
+    assert isinstance(resp.json(), list)
+
+
+def test_get_movers_active(client, session_auth_headers):
+    resp = client.get("/api/market/movers?type=active", headers=session_auth_headers)
+    assert resp.status_code == 200
+
+
 def test_get_movers_invalid_type(client, session_auth_headers):
     resp = client.get("/api/market/movers?type=invalid", headers=session_auth_headers)
     assert resp.status_code == 422
+
+
+# ── Search ────────────────────────────────────────────────────────────────────
+
+
+def test_search_symbols_returns_list(client, session_auth_headers):
+    resp = client.get("/api/market/search?q=AAPL", headers=session_auth_headers)
+    assert resp.status_code == 200
+    assert isinstance(resp.json(), list)
+
+
+def test_search_symbols_unauthenticated(client):
+    resp = client.get("/api/market/search?q=AAPL")
+    assert resp.status_code in (401, 403)

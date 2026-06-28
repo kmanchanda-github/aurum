@@ -125,3 +125,76 @@ def test_delete_holding_makes_portfolio_empty(client, session_auth_headers):
     detail = client.get(f"/api/portfolio/{pid}", headers=session_auth_headers).json()
     symbols = [h["symbol"] for h in detail.get("holdings", [])]
     assert "MSFT" not in symbols
+
+
+def test_delete_portfolio(client, session_auth_headers):
+    pid = client.post("/api/portfolio",
+                      json=_portfolio_body(f"ToDelete_{uuid.uuid4().hex[:6]}"),
+                      headers=session_auth_headers).json()["id"]
+    del_resp = client.delete(f"/api/portfolio/{pid}", headers=session_auth_headers)
+    assert del_resp.status_code == 204
+    # Verify it's gone
+    get_resp = client.get(f"/api/portfolio/{pid}", headers=session_auth_headers)
+    assert get_resp.status_code == 404
+
+
+def test_delete_portfolio_nonexistent(client, session_auth_headers):
+    resp = client.delete("/api/portfolio/nonexistent-id", headers=session_auth_headers)
+    assert resp.status_code == 404
+
+
+def test_list_holdings_endpoint(client, session_auth_headers):
+    pid = client.post("/api/portfolio",
+                      json=_portfolio_body(f"HoldList2_{uuid.uuid4().hex[:6]}"),
+                      headers=session_auth_headers).json()["id"]
+    client.post(f"/api/portfolio/{pid}/holdings",
+                json=_holding_body("VOO", 5.0, 400.0), headers=session_auth_headers)
+    resp = client.get(f"/api/portfolio/{pid}/holdings", headers=session_auth_headers)
+    assert resp.status_code == 200
+    symbols = [h["symbol"] for h in resp.json()]
+    assert "VOO" in symbols
+
+
+def test_list_holdings_nonexistent_portfolio(client, session_auth_headers):
+    resp = client.get("/api/portfolio/nonexistent-id/holdings", headers=session_auth_headers)
+    assert resp.status_code == 404
+
+
+def test_update_holding(client, session_auth_headers):
+    pid = client.post("/api/portfolio",
+                      json=_portfolio_body(f"UpdateHold_{uuid.uuid4().hex[:6]}"),
+                      headers=session_auth_headers).json()["id"]
+    holding = client.post(f"/api/portfolio/{pid}/holdings",
+                          json=_holding_body("GLD", 3.0, 180.0),
+                          headers=session_auth_headers).json()
+    hid = holding["id"]
+    patch_resp = client.patch(f"/api/portfolio/{pid}/holdings/{hid}",
+                              json={"quantity": 5.0},
+                              headers=session_auth_headers)
+    assert patch_resp.status_code == 200
+    assert float(patch_resp.json()["quantity"]) == 5.0
+
+
+def test_update_holding_nonexistent(client, session_auth_headers):
+    pid = client.post("/api/portfolio",
+                      json=_portfolio_body(f"UpdateMiss_{uuid.uuid4().hex[:6]}"),
+                      headers=session_auth_headers).json()["id"]
+    resp = client.patch(f"/api/portfolio/{pid}/holdings/nonexistent-id",
+                        json={"quantity": 1.0},
+                        headers=session_auth_headers)
+    assert resp.status_code == 404
+
+
+def test_add_holding_nonexistent_portfolio(client, session_auth_headers):
+    resp = client.post("/api/portfolio/nonexistent-id/holdings",
+                       json=_holding_body(), headers=session_auth_headers)
+    assert resp.status_code == 404
+
+
+def test_delete_holding_nonexistent(client, session_auth_headers):
+    pid = client.post("/api/portfolio",
+                      json=_portfolio_body(f"DelMiss_{uuid.uuid4().hex[:6]}"),
+                      headers=session_auth_headers).json()["id"]
+    resp = client.delete(f"/api/portfolio/{pid}/holdings/nonexistent-id",
+                         headers=session_auth_headers)
+    assert resp.status_code == 404
