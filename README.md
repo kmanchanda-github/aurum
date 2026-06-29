@@ -14,6 +14,19 @@ app_port: 7860
 
 Aurum is a production-ready multi-agent financial education assistant powered by LangGraph, FastAPI, and React. Six specialized AI agents collaborate to answer questions about investing, your portfolio, live market data, financial goals, news, and tax concepts.
 
+## Links
+
+| | |
+|---|---|
+| **Live Demo** | https://kapilmanchanda-aurum.hf.space |
+| **Demo Video** | https://github.com/kmanchanda-github/aurum/releases/tag/v1.0.0 |
+| **Documentation** | https://kmanchanda-github.github.io/aurum/ |
+| **Architecture** | https://kmanchanda-github.github.io/aurum/#design |
+| **Tech Stack** | https://kmanchanda-github.github.io/aurum/techstack.html |
+| **Data Sources** | https://kmanchanda-github.github.io/aurum/datasources.html |
+| **MCP Server** | https://kmanchanda-github.github.io/aurum/mcp.html |
+| **Operations** | https://kmanchanda-github.github.io/aurum/operations.html |
+
 ## Architecture
 
 ```
